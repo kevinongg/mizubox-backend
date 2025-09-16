@@ -13,7 +13,7 @@ export const createUser = async (name, email, password, role) => {
   return rows[0];
 };
 
-// 
+// Get user by ID
 
 export const getUserById = async (id) => {
   const sql = `SELECT * from users WHERE id = $1`;
