@@ -27,3 +27,12 @@ export const getUserByEmail = async (email, password) => {
   const user = rows[0];
   if (!user) return null;
 };
+
+// Get user by credentials (email and password)
+
+export const getUserByCredentials = async(email, password) => {
+    const sql = `SELECT * from users WHERE email = $1`;
+    const { rows } = await db.quesry(sql, [email]);
+    const user = rows[0];
+    if(!user)
+        return null; };

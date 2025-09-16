@@ -1,5 +1,5 @@
 import express from "express";
-import requireBody from "../middleware/requireBody";
+import requireBody from "../middleware/requireBody.js";
 import { createUser, getUserByCredentials } from '#db/queries/users';
 const router = express.Router();
 export default router;
@@ -24,7 +24,7 @@ router.post("/login",
     requireBody(['email', 'password']),
     async (req,res) => {
         const {email, password} = req.body; 
-        const user = await getUserByEmail(email, password);
+        const user = await getUserByCredentials(email, password);
         if(!user) {
             return res.status(401).send("Invalid email or password");
         }
