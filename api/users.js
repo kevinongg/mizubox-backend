@@ -1,5 +1,6 @@
 import express from "express";
 import requireBody from "../middleware/requireBody";
+import { createUser, getUserByCredentials } from '#db/queries/users';
 const router = express.Router();
 export default router;
 
