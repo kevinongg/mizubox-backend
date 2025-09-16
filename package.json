@@ -1,0 +1,30 @@
+{
+  "name": "justtemaki-backend",
+  "type": "module",
+  "imports": {
+    "#*": "./*.js"
+  },
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "dev": "node --watch --env-file=.env server.js",
+    "test": "vitest",
+    "db:schema": "psql -d justtemaki -f db/schema.sql",
+    "db:seed": "node --env-file=.env db/seed.js",
+    "db:reset": "npm run db:schema && npm run db:seed"
+  },
+  "author": "Kevin",
+  "engines": {
+    "node": ">=22.17.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}
