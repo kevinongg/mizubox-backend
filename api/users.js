@@ -8,7 +8,6 @@ import { createUser, getUserByEmailAndPassword } from "#db/queries/users";
 import requireBody from "../middleware/requireBody.js";
 
 // ----------------users register-------------
-
 router
   .route("/register")
   .post(
@@ -22,7 +21,6 @@ router
   );
 
 // ----------------users login-------------
-
 router
   .route("/login")
   .post(requireBody(["email", "password"]), async (req, res) => {
@@ -34,3 +32,6 @@ router
     const token = createToken({ id: user.id });
     return res.status(201).send(token);
   });
+
+// ----------------users about me-------------
+router.route("/me").get(async (req, res) => {});
