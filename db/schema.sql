@@ -2,6 +2,8 @@ DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS cart_items;
 DROP TABLE IF EXISTS pre_made_box_contents;
 DROP TABLE IF EXISTS user_custom_box_contents;
+DROP TABLE IF EXISTS user_custom_box_sauces;
+DROP TABLE IF EXISTS user_custom_box_sauces;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS cart;
 DROP TABLE IF EXISTS user_custom_boxes;
@@ -67,12 +69,28 @@ CREATE TABLE user_custom_boxes (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-/* ========= JUNCTION TABLE (CUSTOM BOX & NIGIRI [one-to-many]) ========= */
+/* ========= JUNCTION TABLE (CUSTOM BOXES & NIGIRIS [one-to-many]) ========= */
 -- Nigiri inside user-created custom box
 CREATE TABLE user_custom_box_contents (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
   nigiri_id INT NOT NULL REFERENCES nigiris(id),
+  quantity INT DEFAULT 1
+);
+
+/* ========= JUNCTION TABLE (CUSTOM BOXES & SAUCES [one-to-many]) ========= */
+CREATE TABLE user_custom_box_sauces (
+  id SERIAL PRIMARY KEY,
+  user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
+  sauce_id INT NOT NULL REFERENCES sauces(id),
+  quantity INT DEFAULT 1
+);
+
+/* ========= JUNCTION TABLE (CUSTOM BOXES & EXTRAS [one-to-many]) ========= */
+CREATE TABLE user_custom_box_extras (
+  id SERIAL PRIMARY KEY,
+  user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
+  extra_id INT NOT NULL REFERENCES extras(id),
   quantity INT DEFAULT 1
 );
 
