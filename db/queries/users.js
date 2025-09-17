@@ -1,3 +1,41 @@
-import express from "express";
-const router = express.Router();
-export default router;
+import db from "#db/client";
+import bcrypt from "bcrypt";
+
+// Create a new user
+
+export const createUser = async (name, email, password, role) => {
+  const sql = `INSERT INTO 
+    users(name, email, password_hash, role)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *`;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const { rows } = await db.query(sql, [name, email, hashedPassword, role]);
+  return rows[0];
+};
+
+// Get user by ID
+
+export const getUserById = async (id) => {
+  const sql = `SELECT * from users WHERE id = $1`;
+  const { rows } = await db.query(sql, [id]);
+  return rows[0];
+};
+
+export const getUserByEmail = async (email, password) => {
+  const sql = `SELECT * from users WHERE email = $1`;
+  const { rows } = await db.query(sql, [email]);
+  const user = rows[0];
+  if (!user) return null;
+};
+
+// Get user by credentials (email and password)
+
+export const getUserByCredentials = async (email, password) => {
+  const sql = `SELECT * from users WHERE email = $1`;
+  const { rows } = await db.query(sql, [email]);
+  const user = rows[0];
+  if (!user) return null;
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+  if (!isPasswordValid) return null;
+  return user;
+};
