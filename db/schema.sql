@@ -3,15 +3,15 @@ DROP TABLE IF EXISTS cart_items;
 DROP TABLE IF EXISTS pre_made_box_contents;
 DROP TABLE IF EXISTS user_custom_box_contents;
 DROP TABLE IF EXISTS user_custom_box_sauces;
-DROP TABLE IF EXISTS user_custom_box_sauces;
+DROP TABLE IF EXISTS user_custom_box_extras;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS cart;
-DROP TABLE IF EXISTS user_custom_boxes;
+DROP TABLE IF EXISTS user_custom_boxes CASCADE;
 DROP TABLE IF EXISTS pre_made_boxes;
-DROP TABLE IF EXISTS extras;
+DROP TABLE IF EXISTS extras CASCADE;
 DROP TABLE IF EXISTS sauces;
 DROP TABLE IF EXISTS nigiris;
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS users CASCADE;
 
 /* ========= USERS ========= */
 -- User authentication
@@ -61,7 +61,7 @@ price DECIMAL(6,2) DEFAULT 0.00
 
 
 
-/* ========= USER CUSTOM BOXES ========= */
+/* ========= USER CUSTOM BOXES (USER & CUSTOM BOXES [one-to-many])========= */
 -- Custom boxes created by a user. Must have minimum 14 nigiri
 CREATE TABLE user_custom_boxes (
   id SERIAL PRIMARY KEY,
@@ -69,7 +69,7 @@ CREATE TABLE user_custom_boxes (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-/* ========= JUNCTION TABLE (CUSTOM BOXES & NIGIRIS [one-to-many]) ========= */
+/* ========= JUNCTION TABLE (CUSTOM BOXES & NIGIRIS [many-to-many]) ========= */
 -- Nigiri inside user-created custom box
 CREATE TABLE user_custom_box_contents (
   id SERIAL PRIMARY KEY,
@@ -78,7 +78,7 @@ CREATE TABLE user_custom_box_contents (
   quantity INT DEFAULT 1
 );
 
-/* ========= JUNCTION TABLE (CUSTOM BOXES & SAUCES [one-to-many]) ========= */
+/* ========= JUNCTION TABLE (CUSTOM BOXES & SAUCES [many-to-many]) ========= */
 CREATE TABLE user_custom_box_sauces (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
@@ -86,7 +86,7 @@ CREATE TABLE user_custom_box_sauces (
   quantity INT DEFAULT 1
 );
 
-/* ========= JUNCTION TABLE (CUSTOM BOXES & EXTRAS [one-to-many]) ========= */
+/* ========= JUNCTION TABLE (CUSTOM BOXES & EXTRAS [many-to-many]) ========= */
 CREATE TABLE user_custom_box_extras (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
@@ -107,7 +107,7 @@ CREATE TABLE pre_made_boxes (
   price DECIMAL(6,2) NOT NULL
 );
 
-/* ========= JUNCTION TABLE (PRE-MADE BOX & NIGIRI [one-to-many]) ========= */
+/* ========= JUNCTION TABLE (PRE-MADE BOX & NIGIRI [many-to-many]) ========= */
 -- Nigiri included in pre-made sets
 CREATE TABLE pre_made_box_contents (
   id SERIAL PRIMARY KEY,
@@ -126,7 +126,7 @@ CREATE TABLE cart (
   user_id INT REFERENCES users(id) ON DELETE CASCADE
 );
 
-/* ========= JUNCTION TABLE (CART & PRE-MADE BOXES & CUSTOM BOXES [one-to-many]) ========= */
+/* ========= JUNCTION TABLE (CART & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
 -- Stores individual items that a user adds to their cart. Allows cart to hold multiple boxes, 
 -- each potentially of different box types (pre-made or custom) and different quantities
 CREATE TABLE cart_items (

@@ -9,7 +9,6 @@ const getUserFromToken = async (req, res, next) => {
   const token = authorization.split(" ")[1];
   try {
     const { id } = verifyToken(token);
-    if (!id) return res.status(401).send("Invalid token");
     const user = await getUserById(id);
     req.user = user;
     next();
