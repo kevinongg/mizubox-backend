@@ -26,3 +26,23 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).send("OH NO, SOMETHING WENT TERRIBLY WRONG :(");
 });
+
+// ⚡️ Quick usage guide
+
+// Use 200 when you’re returning data.
+
+// Use 201 when you create something.
+
+// Use 204 when you delete something.
+
+// Use 400 for invalid input.
+
+// Use 401/403 for auth issues.
+
+// Use 404 when the thing doesn’t exist.
+
+// Use 409 when it already exists (conflict).
+
+// Use 422 when validation fails.
+
+// Use 500+ if it’s your server’s fault.
