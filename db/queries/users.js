@@ -41,4 +41,38 @@ export const getUserByEmailAndPassword = async (email, password) => {
   return user;
 };
 
-export const getUserInfoByUserId = (userId) => {};
+export const getUserInfoByUserId = async (userId) => {
+  const sql = `
+  SELECT 
+    users.id AS user_id,
+    users.name,
+    users.email,
+    users.role,
+    (SELECT json_agg(json_build_object(
+      'custom_box_id', user_custom_boxes.id,
+      'created_at', user_custom_boxes.created_at
+    )) FROM 
+        user_custom_boxes
+    WHERE 
+        user_custom_boxes.user_id = users.id
+    ) AS custom_boxes,
+    (SELECT json_agg(json_build_object(
+      'order_id', orders.id,
+      'total_price', orders.total_price,
+      'status', orders.status,
+      'created_at', orders.created_at
+    )) FROM 
+        orders
+    WHERE 
+        orders.user_id = users.id
+    ) AS orders
+  FROM
+    users
+  WHERE
+    users.id = $1
+  `;
+  const {
+    rows: [user],
+  } = await db.query(sql, [userId]);
+  return user;
+};
