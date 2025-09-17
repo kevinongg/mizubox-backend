@@ -3,6 +3,10 @@ import db from "#db/client";
 import { faker } from "@faker-js/faker";
 import { createUser } from "./queries/users.js";
 import { createNigiri } from "./queries/nigiris.js";
+import {
+  addNigiriToPreMadeBox,
+  createPreMadeBox,
+} from "./queries/preMadeBoxes.js";
 
 const seed = async () => {
   // create 2 test users
@@ -16,8 +20,8 @@ const seed = async () => {
     );
     users.push(user);
   }
-  console.log(users);
 
+  // create a couple of nigiris
   const nigiriList = [
     {
       name: "Chutoro",
@@ -78,7 +82,21 @@ const seed = async () => {
     );
     nigiris.push(nigiri);
   }
-  console.log(nigiris);
+  // console.log(nigiris);
+
+  // create pre-made mizubox
+  const mizuBox = await createPreMadeBox(
+    "Chef's Choice 14",
+    "14 pieces featuring daily catch",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJ5nBaf-V43FujPdINAJJaSQQ5z-aUIUcMcA&s",
+    80.0
+  );
+  // console.log(mizuBox);
+
+  // assign nigiri into created mizubox
+  await addNigiriToPreMadeBox(mizuBox.id, nigiris[0].id, 5);
+  await addNigiriToPreMadeBox(mizuBox.id, nigiris[1].id, 5);
+  await addNigiriToPreMadeBox(mizuBox.id, nigiris[2].id, 4);
 };
 
 await db.connect();
