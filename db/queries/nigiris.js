@@ -13,7 +13,9 @@ export const createNigiri = async (
   VALUES ($1, $2, $3, $4, $5, $6)
   RETURNING *
   `;
-  const { rows: nigiri } = await db.query(sql, [
+  const {
+    rows: [nigiri],
+  } = await db.query(sql, [
     name,
     category,
     description,
