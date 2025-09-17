@@ -17,7 +17,7 @@ router
       const { name, email, password, role } = req.body;
       const user = await createUser(name, email, password, role);
       const token = createToken({ id: user.id });
-      return res.status(201).json(token);
+      return res.status(201).send(token);
     }
   );
 

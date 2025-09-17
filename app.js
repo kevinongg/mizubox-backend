@@ -18,7 +18,7 @@ app.use(getUserFromToken);
 app.use("/users", userRoutes);
 
 app.route("/").get((req, res) => {
-  res.send("Welcome to JustTemaki API");
+  res.send("Welcome to MizuBox API");
 });
 
 app.use(handlePostgresErrors);

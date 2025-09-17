@@ -1,18 +1,18 @@
-DROP TABLE IF EXISTS combo_temakis;
-DROP TABLE IF EXISTS temaki_extras;
-DROP TABLE IF EXISTS temaki_sauces;
-DROP TABLE IF EXISTS temaki_ingredients;
-DROP TABLE IF EXISTS order_boxes;
-DROP TABLE IF EXISTS combos;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS pre_made_box_contents;
+DROP TABLE IF EXISTS user_custom_box_contents;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS cart;
+DROP TABLE IF EXISTS user_custom_boxes;
+DROP TABLE IF EXISTS pre_made_boxes;
 DROP TABLE IF EXISTS extras;
 DROP TABLE IF EXISTS sauces;
-DROP TABLE IF EXISTS ingredients;
-DROP TABLE IF EXISTS temakis;
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS boxes;
+DROP TABLE IF EXISTS nigiris;
 DROP TABLE IF EXISTS users;
 
 /* ========= USERS ========= */
+-- User authentication
 CREATE TABLE users (
 id SERIAL PRIMARY KEY,
 name TEXT NOT NULL,
@@ -21,110 +21,125 @@ password_hash TEXT NOT NULL,
 role TEXT DEFAULT 'user' -- (eg.. user || admin)
 );
 
-/* ========= USERS CREATE BOXES ========= */
--- user creates a cart-like container of temakis in a box
-CREATE TABLE boxes (
-id SERIAL PRIMARY KEY,
-user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-status TEXT DEFAULT 'draft', -- (eg.. draft || ordered || delivered || cancelled)
-total_price DECIMAL(6,2) NOT NULL
-);
-
-/* ========= USERS PLACE ORDERS ========= */
--- finalized purchase of one or more boxes
-CREATE TABLE orders (
-id SERIAL PRIMARY KEY,
-user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-created_at DATE NOT NULL,
-status TEXT DEFAULT 'pending', -- (eg.. 'pending', 'confirmed', 'delivered')
-total_price DECIMAL(6,2) NOT NULL
-);
-
-/* ========= JUNCTION TABLE (BOXES & ORDERS [one-to-many]) ========= */
--- which box belongs to a given order (one order can contain many boxes)
-CREATE TABLE order_boxes (
-id SERIAL PRIMARY KEY,
-order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-box_id INTEGER NOT NULL REFERENCES boxes(id)
-);
-
-/* ========= TEMAKIS ========= */
--- creates temakis inside boxes
-CREATE TABLE temakis (
-id SERIAL PRIMARY KEY,
-box_id INTEGER NOT NULL REFERENCES boxes(id) ON DELETE CASCADE,
-image_url TEXT NOT NULL
-);
-
-/* ========= INGREDIENTS ========= */
--- ingredients to add to a temaki
-CREATE TABLE ingredients (
+/* ========= NIGIRI ========= */
+-- Core sushi items
+CREATE TABLE nigiris (
 id SERIAL PRIMARY KEY,
 name TEXT NOT NULL,
-type TEXT NOT NULL, -- (eg.. protein || veggie || sauce)
-description TEXT NOT NULL,
-quantity INTEGER NOT NULL,
+category TEXT NOT NULL, -- (eg.. fish || meat || veggie)
+description TEXT,
 image_url TEXT NOT NULL,
-price DECIMAL(6,2) DEFAULT 0.00,
+price DECIMAL(6,2) NOT NULL,
 available BOOLEAN DEFAULT TRUE
-);
-
-/* ========= JUNCTION TABLE (TEMAKIS & INGREDIENTS [many-to-many] ========= */
-CREATE TABLE temaki_ingredients (
-id SERIAL PRIMARY KEY,
-temaki_id INTEGER NOT NULL REFERENCES temakis(id) ON DELETE CASCADE,
-ingredient_id INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE
+-- quantity INTEGER NOT NULL,
 );
 
 /* ========= SAUCES ========= */
--- sauces to add to a temaki
+-- Optional add-ons
 CREATE TABLE sauces (
 id SERIAL PRIMARY KEY,
 name TEXT NOT NULL,
-description TEXT NOT NULL,
-quantity INTEGER NOT NULL,
+description TEXT,
 image_url TEXT NOT NULL,
-price DECIMAL(4,2) DEFAULT 0.00
-);
-
-/* ========= JUNCTION TABLE (TEMAKIS & SAUCES [many-to-many]) ========= */
-CREATE TABLE temaki_sauces (
-id SERIAL PRIMARY KEY,
-temaki_id INTEGER REFERENCES temakis(id) ON DELETE CASCADE,
-sauce_id INTEGER REFERENCES sauces(id)
+price DECIMAL(6,2) DEFAULT 0.00
+-- quantity INTEGER NOT NULL,
 );
 
 /* ========= EXTRAS ========= */
--- extras to add to a temaki
+-- Optional add-ons
 CREATE TABLE extras (
 id SERIAL PRIMARY KEY,
 name TEXT NOT NULL,
-description TEXT NOT NULL,
-quantity INTEGER NOT NULL,
+description TEXT,
 image_url TEXT NOT NULL,
-price DECIMAL(4,2) DEFAULT 0.00
+price DECIMAL(6,2) DEFAULT 0.00
+-- quantity INTEGER NOT NULL,
 );
 
-/* ========= JUNCTION TABLE (TEMAKIS & EXTRAS [many-to-many]) ========= */
-CREATE TABLE temaki_extras (
-id SERIAL PRIMARY KEY,
-temaki_id INTEGER REFERENCES temakis(id) ON DELETE CASCADE,
-extra_id INTEGER REFERENCES extras(id)
+
+
+
+/* ========= USER CUSTOM BOXES ========= */
+-- Custom boxes created by a user. Must have minimum 14 nigiri
+CREATE TABLE user_custom_boxes (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-/* ========= COMBOS ========= */
--- pre-made sets of temakis
-CREATE TABLE combos (
-id SERIAL PRIMARY KEY,
-name TEXT NOT NULL,
-description TEXT NOT NULL,
-image_url TEXT NOT NULL,
-price DECIMAL(4,2) DEFAULT 0.00
+/* ========= JUNCTION TABLE (CUSTOM BOX & NIGIRI [one-to-many]) ========= */
+-- Nigiri inside user-created custom box
+CREATE TABLE user_custom_box_contents (
+  id SERIAL PRIMARY KEY,
+  user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
+  nigiri_id INT NOT NULL REFERENCES nigiris(id),
+  quantity INT DEFAULT 1
 );
 
-/* ========= JUNCTION TABLE ( COMBOS & TEMAKIS [many-to-many]) ========= */
-CREATE TABLE combo_temakis (
-id SERIAL PRIMARY KEY,
-combo_id INTEGER REFERENCES combos(id) ON DELETE CASCADE,
-temaki_id INTEGER REFERENCES temakis(id)
+
+
+
+/* ========= PRE-MADE BOXES ========= */
+-- Sets of nigiri selected by chef
+CREATE TABLE pre_made_boxes (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  image_url TEXT NOT NULL,
+  price DECIMAL(6,2) NOT NULL
+);
+
+/* ========= JUNCTION TABLE (PRE-MADE BOX & NIGIRI [one-to-many]) ========= */
+-- Nigiri included in pre-made sets
+CREATE TABLE pre_made_box_contents (
+  id SERIAL PRIMARY KEY,
+  pre_made_box_id INT NOT NULL REFERENCES pre_made_boxes(id) ON DELETE CASCADE,
+  nigiri_id INT NOT NULL REFERENCES nigiris(id) ON DELETE CASCADE,
+  quantity INT DEFAULT 1
+);
+
+
+
+
+/* ========= CART ========= */
+-- Cart logged and linked to each user
+CREATE TABLE cart (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE
+);
+
+/* ========= JUNCTION TABLE (CART & PRE-MADE BOXES & CUSTOM BOXES [one-to-many]) ========= */
+-- Stores individual items that a user adds to their cart. Allows cart to hold multiple boxes, 
+-- each potentially of different box types (pre-made or custom) and different quantities
+CREATE TABLE cart_items (
+  id SERIAL PRIMARY KEY,
+  cart_id INT REFERENCES cart(id) ON DELETE CASCADE,
+  pre_made_box_id INT REFERENCES pre_made_boxes(id),
+  user_custom_box_id INT REFERENCES user_custom_boxes(id),
+  box_type TEXT CHECK (box_type IN ('pre_made', 'custom')),
+  quantity INT DEFAULT 1
+);
+
+
+
+
+/* ========= ORDERS ========= */
+-- Stores completed purchases
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id),
+  total_price DECIMAL(10,2) NOT NULL,
+  status TEXT DEFAULT 'pending', -- (eg.. 'pending', 'confirmed', 'delivered')
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+/* ========= JUNCTION TABLE (ORDERS & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
+-- Stores details about each item in a specific order
+CREATE TABLE order_items (
+  id SERIAL PRIMARY KEY,
+  order_id INT REFERENCES orders(id) ON DELETE CASCADE,
+  pre_made_box_id INT REFERENCES pre_made_boxes(id),
+  user_custom_box_id INT REFERENCES user_custom_boxes(id),
+  box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
+  quantity INT DEFAULT 1
 );
