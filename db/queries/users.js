@@ -40,3 +40,5 @@ export const getUserByEmailAndPassword = async (email, password) => {
   if (!userExists) return null;
   return user;
 };
+
+export const getUserInfoByUserId = (userId) => {};
