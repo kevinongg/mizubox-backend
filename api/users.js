@@ -1,31 +1,36 @@
 import express from "express";
-import requireBody from "../middleware/requireBody.js";
-import { createToken } from "#utils/jwt";
-import { createUser, getUserByCredentials } from "#db/queries/users";
 const router = express.Router();
 export default router;
 
+import { createToken } from "#utils/jwt";
+import { createUser, getUserByEmailAndPassword } from "#db/queries/users";
+
+import requireBody from "../middleware/requireBody.js";
+
 // ----------------users register-------------
 
-router.post(
-  "/register",
-  requireBody(["name", "email", "password", "role"]),
-  async (req, res) => {
-    const { name, email, password, role } = req.body;
-    const user = await createUser(name, email, password, role);
-    const token = createToken({ id: user.id });
-    return res.status(201).json({ user, token });
-  }
-);
+router
+  .route("/register")
+  .post(
+    requireBody(["name", "email", "password", "role"]),
+    async (req, res) => {
+      const { name, email, password, role } = req.body;
+      const user = await createUser(name, email, password, role);
+      const token = createToken({ id: user.id });
+      return res.status(201).json(token);
+    }
+  );
 
 // ----------------users login-------------
 
-router.post("/login", requireBody(["email", "password"]), async (req, res) => {
-  const { email, password } = req.body;
-  const user = await getUserByCredentials(email, password);
-  if (!user) {
-    return res.status(401).send("Invalid email or password");
-  }
-  const token = createToken({ id: user.id });
-  return res.status(200).json({ user, token });
-});
+router
+  .route("/login")
+  .post(requireBody(["email", "password"]), async (req, res) => {
+    const { email, password } = req.body;
+    const user = await getUserByEmailAndPassword(email, password);
+    if (!user) {
+      return res.status(401).send("Invalid email or password");
+    }
+    const token = createToken({ id: user.id });
+    return res.status(201).send(token);
+  });

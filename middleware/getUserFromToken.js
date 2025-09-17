@@ -1,4 +1,3 @@
-// import { getUserById } from "#db/queries/users";
 import { verifyToken } from "#utils/jwt";
 import { getUserById } from "#db/queries/users";
 
