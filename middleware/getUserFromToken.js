@@ -6,7 +6,7 @@ const getUserFromToken = async (req, res, next) => {
   const authorization = req.get("authorization");
   if (!authorization || !authorization.startsWith("Bearer ")) return next();
 
-  const token = authorization.split("")[1];
+  const token = authorization.split(" ")[1];
   try {
     const { id } = verifyToken(token);
     const user = await getUserById(id);
