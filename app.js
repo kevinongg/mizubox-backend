@@ -28,7 +28,6 @@ app.use("/nigiris", nigiriRoutes);
 app.use("/pre-made-boxes", preMadeBoxRoutes);
 app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
-app.use("/menuItems", menuItemRoutes);
 app.use("/nigiris", nigiriRoutes);
 
 
