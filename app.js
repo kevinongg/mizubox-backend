@@ -13,7 +13,6 @@ import preMadeBoxRoutes from "#api/preMadeBoxes";
 import sauceRoutes from "#api/sauces";
 import extraRoutes from "#api/extras";
 
-
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -21,13 +20,11 @@ app.use(morgan("dev"));
 app.use(getUserFromToken);
 
 app.use("/users", userRoutes);
-
 app.use("/nigiris", nigiriRoutes);
 app.use("/pre-made-boxes", preMadeBoxRoutes);
 app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
 app.use("/nigiris", nigiriRoutes);
-
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");
