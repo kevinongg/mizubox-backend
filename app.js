@@ -19,9 +19,10 @@ app.use(morgan("dev"));
 app.use(getUserFromToken);
 
 app.use("/users", userRoutes);
+
 app.use("/menuItems", menuItemRoutes);
 app.use("/nigiris", nigiriRoutes);
-app.use("/menuItems", menuItemRoutes);
+
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");
