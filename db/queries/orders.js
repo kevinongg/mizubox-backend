@@ -73,3 +73,11 @@ export const addOrderItemExtra = async (orderItemId, extraId, quantity) => {
   } = await db.query(sql, [orderItemId, extraId, quantity]);
   return orderItemExtra;
 };
+
+export const getAllOrders = async (userId, totalPrice, status) => {
+  const sql = `
+  select * from orders
+  `;
+  const { rows: orders } = await db.query(sql);
+  return orders;
+};
