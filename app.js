@@ -8,6 +8,7 @@ import morgan from "morgan";
 import cors from "cors";
 
 import userRoutes from "#api/users";
+import menuItemRoutes from "#api/menuItems";
 
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use(morgan("dev"));
 app.use(getUserFromToken);
 
 app.use("/users", userRoutes);
+app.use("/menuItems", menuItemRoutes);
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");
