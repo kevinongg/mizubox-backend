@@ -7,7 +7,6 @@ export const createCart = async (userId) => {
   const {
     rows: [cart],
   } = await db.query(sql, [userId]);
-  console.log(cart);
   return cart;
 };
 
@@ -21,7 +20,6 @@ export const addItemToCart = async (cartId, boxType, boxId, quantity) => {
     const {
       rows: [cartItem],
     } = await db.query(sql, [cartId, boxType, boxId, quantity]);
-    console.log(cartItem);
     return cartItem;
   }
 
@@ -34,7 +32,6 @@ export const addItemToCart = async (cartId, boxType, boxId, quantity) => {
     const {
       rows: [cartItem],
     } = await db.query(sql, [cartId, boxType, boxId, quantity]);
-    console.log(cartItem);
     return cartItem;
   }
 };
