@@ -47,7 +47,6 @@ export const addOrderItemNigiri = async (orderItemId, nigiriId, quantity) => {
   const {
     rows: [orderItemNigiri],
   } = await db.query(sql, [orderItemId, nigiriId, quantity]);
-  console.log(orderItemNigiri);
   return orderItemNigiri;
 };
 
@@ -60,7 +59,6 @@ export const addOrderItemSauce = async (orderItemId, sauceId, quantity) => {
   const {
     rows: [orderItemSauce],
   } = await db.query(sql, [orderItemId, sauceId, quantity]);
-  console.log(orderItemSauce);
   return orderItemSauce;
 };
 
@@ -73,6 +71,5 @@ export const addOrderItemExtra = async (orderItemId, extraId, quantity) => {
   const {
     rows: [orderItemExtra],
   } = await db.query(sql, [orderItemId, extraId, quantity]);
-  console.log(orderItemExtra);
   return orderItemExtra;
 };
