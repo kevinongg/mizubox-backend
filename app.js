@@ -13,8 +13,6 @@ import nigiriRoutes from "#api/nigiris";
 import preMadeBoxRoutes from "#api/preMadeBoxes";
 import sauceRoutes from "#api/sauces";
 import extraRoutes from "#api/extras";
-import menuItemRoutes from "#api/menuItems";
-import nigiriRoutes from "#api/nigiris";
 
 
 
@@ -33,7 +31,6 @@ app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
 app.use("/menuItems", menuItemRoutes);
 app.use("/nigiris", nigiriRoutes);
-app.use("/menuItems", menuItemRoutes);
 
 
 app.route("/").get((req, res) => {
