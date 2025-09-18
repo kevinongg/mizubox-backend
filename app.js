@@ -24,7 +24,6 @@ app.use("/nigiris", nigiriRoutes);
 app.use("/pre-made-boxes", preMadeBoxRoutes);
 app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
-app.use("/nigiris", nigiriRoutes);
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");
