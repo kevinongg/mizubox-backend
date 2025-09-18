@@ -8,8 +8,12 @@ import {
 } from "#db/queries/preMadeBoxes";
 
 router.route("/").get(async (req, res) => {
-  const preMadeBoxes = await getAllPreMadeBoxes();
-  return res.status(200).send(preMadeBoxes);
+  try {
+    const preMadeBoxes = await getAllPreMadeBoxes();
+    return res.status(200).send(preMadeBoxes);
+  } catch (error) {
+    return next(error);
+  }
 });
 
 router.param("id", async (req, res, next, id) => {
@@ -25,5 +29,9 @@ router.param("id", async (req, res, next, id) => {
 });
 
 router.route("/:id").get(async (req, res) => {
-  res.status(200).send(req.preMadeBox);
+  try {
+    res.status(200).send(req.preMadeBox);
+  } catch (error) {
+    return next(error);
+  }
 });

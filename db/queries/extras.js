@@ -11,3 +11,11 @@ export const createExtra = async (name, description, imageUrl, price) => {
   } = await db.query(sql, [name, description, imageUrl, price]);
   return extra;
 };
+
+export const getAllExtras = async () => {
+  const sql = `
+  SELECT * FROM extras ORDER BY id
+  `;
+  const { rows: extras } = await db.query(sql);
+  return extras;
+};
