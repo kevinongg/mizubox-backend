@@ -16,8 +16,9 @@ DROP TABLE IF EXISTS sauces;
 DROP TABLE IF EXISTS nigiris;
 DROP TABLE IF EXISTS users CASCADE;
 
-/* ========= USERS ========= */
--- User authentication
+-- ====================================
+-- USERS (Authentication)
+-- ====================================
 CREATE TABLE users (
 id SERIAL PRIMARY KEY,
 name TEXT NOT NULL,
@@ -26,8 +27,9 @@ password_hash TEXT NOT NULL,
 role TEXT DEFAULT 'user' -- (eg.. user || admin)
 );
 
-/* ========= NIGIRI ========= */
--- Core sushi items
+-- ====================================
+-- NIGIRI (Menu items)
+-- ====================================
 CREATE TABLE nigiris (
 id SERIAL PRIMARY KEY,
 name TEXT NOT NULL,
@@ -39,8 +41,9 @@ available BOOLEAN DEFAULT TRUE
 -- quantity INTEGER NOT NULL,
 );
 
-/* ========= SAUCES ========= */
--- Optional add-ons
+-- ======================================
+-- SAUCES (Menu items) (Optional add-ons)
+-- ======================================
 CREATE TABLE sauces (
 id SERIAL PRIMARY KEY,
 name TEXT NOT NULL,
@@ -50,8 +53,9 @@ price DECIMAL(6,2) DEFAULT 0.00
 -- quantity INTEGER NOT NULL,
 );
 
-/* ========= EXTRAS ========= */
--- Optional add-ons
+-- ======================================
+-- EXTRAS (Menu items) (Optional add-ons)
+-- ======================================
 CREATE TABLE extras (
 id SERIAL PRIMARY KEY,
 name TEXT NOT NULL,
@@ -63,17 +67,20 @@ price DECIMAL(6,2) DEFAULT 0.00
 
 
 
-
-/* ========= USER CUSTOM BOXES (USER & CUSTOM BOXES [one-to-many])========= */
--- Custom boxes created by a user. Must have minimum 14 nigiri
+-- =============================================================
+-- USER CUSTOM BOXES (USER & CUSTOM BOXES) (One-To-Many)
+-- =============================================================
+-- [custom boxes created by a user. Must have minimum 14 nigiri]
 CREATE TABLE user_custom_boxes (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-/* ========= JUNCTION TABLE (CUSTOM BOXES & NIGIRIS [many-to-many]) ========= */
--- Nigiri inside user-created custom box
+-- =============================================================
+-- JUNCTION TABLE (CUSTOM BOXES & NIGIRIS) (Many-To-Many)
+-- =============================================================
+-- [Nigiris inside user-created custom box]
 CREATE TABLE user_custom_box_contents (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
@@ -82,6 +89,7 @@ CREATE TABLE user_custom_box_contents (
 );
 
 /* ========= JUNCTION TABLE (CUSTOM BOXES & SAUCES [many-to-many]) ========= */
+-- [Sauces inside user-created custom box]
 CREATE TABLE user_custom_box_sauces (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
@@ -90,6 +98,7 @@ CREATE TABLE user_custom_box_sauces (
 );
 
 /* ========= JUNCTION TABLE (CUSTOM BOXES & EXTRAS [many-to-many]) ========= */
+-- [Extras inside user-created custom box]
 CREATE TABLE user_custom_box_extras (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
