@@ -31,6 +31,8 @@ const seed = async () => {
     users.push(user);
   }
 
+  //======================================================================================================
+
   //*** Create a couple of nigiris ***//
   const nigiriList = [
     {
@@ -93,6 +95,8 @@ const seed = async () => {
     nigiris.push(nigiri);
   }
 
+  //======================================================================================================
+
   //*** Create a couple of sauces ***//
   const sauceList = [
     {
@@ -129,6 +133,8 @@ const seed = async () => {
     );
     sauces.push(sauce);
   }
+
+  //======================================================================================================
 
   //*** Create a couple of extras ***//
   const extraList = [
@@ -169,6 +175,8 @@ const seed = async () => {
     extras.push(extra);
   }
 
+  // //======================================================================================================
+
   //*** Create pre-made mizubox ***//
   const preMade = await createPreMadeBox(
     "Chef's Choice 14",
@@ -176,11 +184,12 @@ const seed = async () => {
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJ5nBaf-V43FujPdINAJJaSQQ5z-aUIUcMcA&s",
     80.0
   );
-
   //*** Assign nigiri into created mizubox ***//
   await addNigiriToPreMadeBox(preMade.id, nigiris[0].id, 5);
   await addNigiriToPreMadeBox(preMade.id, nigiris[1].id, 5);
   await addNigiriToPreMadeBox(preMade.id, nigiris[2].id, 4);
+
+  // //======================================================================================================
 
   //*** Create custom box ***//
   const customBox = await createUserCustomBox(users[0].id);
@@ -198,11 +207,15 @@ const seed = async () => {
   await addExtraToUserCustomBox(customBox.id, extras[1].id, 2);
   await addExtraToUserCustomBox(customBox.id, extras[2].id, 1);
 
+  //======================================================================================================
+
   //*** create cart ***//
   const cart = await createCart(users[0].id);
   //*** add item to cart
   await addItemToCart(cart.id, "pre-made", preMade.id, 1);
   await addItemToCart(cart.id, "custom", customBox.id, 1);
+
+  //======================================================================================================
 
   //*** create order ***//
   const order = await createOrder(users[0].id, 200.0, "placed");
