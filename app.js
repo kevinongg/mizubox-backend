@@ -8,7 +8,6 @@ import morgan from "morgan";
 import cors from "cors";
 
 import userRoutes from "#api/users";
-import menuItemRoutes from "#api/menuItems";
 import nigiriRoutes from "#api/nigiris";
 import preMadeBoxRoutes from "#api/preMadeBoxes";
 import sauceRoutes from "#api/sauces";
@@ -23,7 +22,6 @@ app.use(getUserFromToken);
 
 app.use("/users", userRoutes);
 
-app.use("/menuItems", menuItemRoutes);
 app.use("/nigiris", nigiriRoutes);
 app.use("/pre-made-boxes", preMadeBoxRoutes);
 app.use("/sauces", sauceRoutes);
