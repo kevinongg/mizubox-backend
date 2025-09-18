@@ -11,3 +11,12 @@ export const createSauce = async (name, description, imageUrl, price) => {
   } = await db.query(sql, [name, description, imageUrl, price]);
   return sauce;
 };
+
+export const getAllSauces = async () => {
+  const sql = `
+    SELECT * FROM sauces ORDER BY id
+    `;
+  const { rows: sauces } = await db.query(sql);
+  console.log(sauces);
+  return sauces;
+};
