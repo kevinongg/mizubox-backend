@@ -8,6 +8,7 @@ import morgan from "morgan";
 import cors from "cors";
 
 import userRoutes from "#api/users";
+import nigiriRoutes from "#api/nigiris";
 
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use(morgan("dev"));
 app.use(getUserFromToken);
 
 app.use("/users", userRoutes);
+app.use("/nigiris", nigiriRoutes);
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");

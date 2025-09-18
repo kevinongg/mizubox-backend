@@ -25,3 +25,22 @@ export const createNigiri = async (
   ]);
   return nigiri;
 };
+
+export const getAllNigiris = async () => {
+  const sql = `
+  SELECT * FROM nigiris
+  `;
+  const { rows: nigiris } = await db.query(sql);
+  console.log(nigiris);
+  return nigiris;
+};
+
+export const getNigiriById = async (id) => {
+  const sql = `
+  SELECT * FROM nigiris WHERE id = $1
+  `;
+  const {
+    rows: [nigiri],
+  } = await db.query(sql, [id]);
+  return nigiri;
+};
