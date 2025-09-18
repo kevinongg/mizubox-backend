@@ -96,7 +96,8 @@ const seed = async () => {
       item.description,
       item.imageUrl,
       item.price,
-      item.available
+      item.available,
+      item.quantity
     );
     nigiris.push(nigiri);
   }
