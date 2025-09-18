@@ -49,14 +49,17 @@ export const getPreMadeBoxById = async (id) => {
     (SELECT json_agg(json_build_object(
     'pre_made_box_content_id', pre_made_box_contents.id,
     'nigiri_id', nigiris.id,
-    'nigiri_name', nigiris.name,
-    'nigiri_category', nigiris.category,
-    'nigiri_image_url', nigiris.image_url,
-    'nigiri_price', nigiris.price)
+    'name', nigiris.name,
+    'category', nigiris.category,
+    'image_url', nigiris.image_url,
+    'price', nigiris.price,
+    'quantity', pre_made_box_contents.quantity)
     ) FROM
-        nigiris
+        pre_made_box_contents
       JOIN 
-        pre_made_box_contents ON pre_made_box_contents.pre_made_box_id = pre_made_boxes.id
+        nigiris ON nigiris.id = pre_made_box_contents.nigiri_id
+      WHERE
+        pre_made_box_contents.pre_made_box_id = $1
     ) AS
         contents
     FROM
