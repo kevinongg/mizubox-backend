@@ -34,7 +34,6 @@ export const addItemToOrder = async (orderId, boxType, boxId, quantity) => {
     const {
       rows: [orderItem],
     } = await db.query(sql, [orderId, boxType, boxId, quantity]);
-    console.log(orderItem);
     return orderItem;
   }
 };
