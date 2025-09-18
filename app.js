@@ -15,7 +15,6 @@ import sauceRoutes from "#api/sauces";
 import extraRoutes from "#api/extras";
 
 
-
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
