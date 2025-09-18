@@ -38,7 +38,7 @@ description TEXT,
 image_url TEXT NOT NULL,
 price DECIMAL(6,2) NOT NULL,
 available BOOLEAN DEFAULT TRUE
--- quantity INTEGER NOT NULL,
+-- quantity INTEGER NOT NULL
 );
 
 -- ======================================
