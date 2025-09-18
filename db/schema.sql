@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS order_item_extras;
+DROP TABLE IF EXISTS order_item_sauces;
+DROP TABLE IF EXISTS order_item_nigiris;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS cart_items;
 DROP TABLE IF EXISTS pre_made_box_contents;
@@ -152,7 +155,7 @@ CREATE TABLE orders (
 );
 
 /* ========= JUNCTION TABLE (ORDERS & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
--- Stores details about each item in a specific order
+-- Table to grab order history box data
 CREATE TABLE order_items (
   id SERIAL PRIMARY KEY,
   order_id INT REFERENCES orders(id) ON DELETE CASCADE,
@@ -160,4 +163,28 @@ CREATE TABLE order_items (
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
   quantity INT DEFAULT 1
+);
+
+-- Table to grab order history information about nigiris in a custom box
+CREATE TABLE order_item_nigiris (
+  id SERIAL PRIMARY KEY,
+  order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
+  nigiri_id INT REFERENCES nigiris(id),
+  quantity INT NOT NULL
+);
+
+-- Table to grab order history information about sauces in a custom box
+CREATE TABLE order_item_sauces (
+  id SERIAL PRIMARY KEY,
+  order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
+  sauce_id INT REFERENCES sauces(id),
+  quantity INT NOT NULL
+);
+
+-- Table to grab order history information about extras in a custom box
+CREATE TABLE order_item_extras (
+  id SERIAL PRIMARY KEY,
+  order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
+  extra_id INT REFERENCES extras(id),
+  quantity INT NOT NULL
 );

@@ -209,7 +209,7 @@ const seed = async () => {
 
   //======================================================================================================
 
-  //*** create cart ***//
+  //*** Create cart ***//
   const cart = await createCart(users[0].id);
   //*** add item to cart
   await addItemToCart(cart.id, "pre-made", preMade.id, 1);
@@ -217,7 +217,7 @@ const seed = async () => {
 
   //======================================================================================================
 
-  //*** create order ***//
+  //*** Create order ***//
   const order = await createOrder(users[0].id, 200.0, "placed");
   //*** add item to order ***//
   await addItemToOrder(order.id, "pre-made", preMade.id, 1);
