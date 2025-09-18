@@ -11,6 +11,7 @@ import {
   addNigiriToUserCustomBox,
   createUserCustomBox,
 } from "./queries/UserCustomBoxes.js";
+import { addItemToCart, createCart } from "./queries/cart.js";
 
 const seed = async () => {
   //*** Create 2 test users ***//
@@ -111,8 +112,10 @@ const seed = async () => {
   await addNigiriToUserCustomBox(customBox.id, nigiris[3].id, 2);
 
   // create cart
-
+  const cart = await createCart(users[0].id);
   // add item to cart
+  await addItemToCart(cart.id, `pre-made`, preMade.id, 1);
+  await addItemToCart(cart.id, `custom`, customBox.id, 1);
 
   // create order
 

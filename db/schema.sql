@@ -132,9 +132,9 @@ CREATE TABLE cart (
 CREATE TABLE cart_items (
   id SERIAL PRIMARY KEY,
   cart_id INT REFERENCES cart(id) ON DELETE CASCADE,
+  box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
-  box_type TEXT CHECK (box_type IN ('pre_made', 'custom')),
   quantity INT DEFAULT 1
 );
 
@@ -156,8 +156,8 @@ CREATE TABLE orders (
 CREATE TABLE order_items (
   id SERIAL PRIMARY KEY,
   order_id INT REFERENCES orders(id) ON DELETE CASCADE,
+  box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
-  box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   quantity INT DEFAULT 1
 );
