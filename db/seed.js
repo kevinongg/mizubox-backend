@@ -7,9 +7,13 @@ import {
   addNigiriToPreMadeBox,
   createPreMadeBox,
 } from "./queries/preMadeBoxes.js";
+import {
+  addNigiriToUserCustomBox,
+  createUserCustomBox,
+} from "./queries/UserCustomBoxes.js";
 
 const seed = async () => {
-  // create 2 test users
+  //*** Create 2 test users ***//
   let users = [];
   for (let i = 0; i < 2; i++) {
     const user = await createUser(
@@ -21,7 +25,7 @@ const seed = async () => {
     users.push(user);
   }
 
-  // create a couple of nigiris
+  //*** Create a couple of nigiris ***//
   const nigiriList = [
     {
       name: "Chutoro",
@@ -84,8 +88,8 @@ const seed = async () => {
   }
   // console.log(nigiris);
 
-  // create pre-made mizubox
-  const mizuBox = await createPreMadeBox(
+  //*** Create pre-made mizubox ***//
+  const preMade = await createPreMadeBox(
     "Chef's Choice 14",
     "14 pieces featuring daily catch",
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJ5nBaf-V43FujPdINAJJaSQQ5z-aUIUcMcA&s",
@@ -93,12 +97,27 @@ const seed = async () => {
   );
   // console.log(mizuBox);
 
-  // assign nigiri into created mizubox
-  await addNigiriToPreMadeBox(mizuBox.id, nigiris[0].id, 5);
-  await addNigiriToPreMadeBox(mizuBox.id, nigiris[1].id, 5);
-  await addNigiriToPreMadeBox(mizuBox.id, nigiris[2].id, 4);
-};
+  //*** Assign nigiri into created mizubox ***//
+  await addNigiriToPreMadeBox(preMade.id, nigiris[0].id, 5);
+  await addNigiriToPreMadeBox(preMade.id, nigiris[1].id, 5);
+  await addNigiriToPreMadeBox(preMade.id, nigiris[2].id, 4);
 
+  //*** Create custom box ***//
+  const customBox = await createUserCustomBox(users[0].id);
+  //*** Assign nigiri to created custom box ***//
+  await addNigiriToUserCustomBox(customBox.id, nigiris[0].id, 4);
+  await addNigiriToUserCustomBox(customBox.id, nigiris[1].id, 4);
+  await addNigiriToUserCustomBox(customBox.id, nigiris[2].id, 4);
+  await addNigiriToUserCustomBox(customBox.id, nigiris[3].id, 2);
+
+  // create cart
+
+  // add item to cart
+
+  // create order
+
+  // add item to order
+};
 await db.connect();
 await seed();
 await db.end();
