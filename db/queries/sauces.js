@@ -11,6 +11,7 @@ export const createSauce = async (name, description, imageUrl, price) => {
   } = await db.query(sql, [name, description, imageUrl, price]);
   return sauce;
 };
+<<<<<<< HEAD
 
 export const getAllSauces = async () => {
   const sql = `
@@ -20,3 +21,5 @@ export const getAllSauces = async () => {
   console.log(sauces);
   return sauces;
 };
+=======
+>>>>>>> 2e7fa73 (add extras & sauces seed)
