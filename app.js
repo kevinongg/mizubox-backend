@@ -10,6 +10,7 @@ import cors from "cors";
 import userRoutes from "#api/users";
 import menuItemRoutes from "#api/menuItems";
 import nigiriRoutes from "#api/nigiris";
+import preMadeBoxRoutes from "#api/preMadeBoxes";
 
 
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
@@ -22,6 +23,7 @@ app.use("/users", userRoutes);
 
 app.use("/menuItems", menuItemRoutes);
 app.use("/nigiris", nigiriRoutes);
+app.use("/pre-made-boxes", preMadeBoxRoutes);
 
 
 app.route("/").get((req, res) => {

@@ -28,7 +28,7 @@ export const createNigiri = async (
 
 export const getAllNigiris = async () => {
   const sql = `
-  SELECT * FROM nigiris
+  SELECT * FROM nigiris ORDER BY id
   `;
   const { rows: nigiris } = await db.query(sql);
   console.log(nigiris);

@@ -29,3 +29,43 @@ export const addNigiriToPreMadeBox = async (
   ]);
   return addNigiri;
 };
+
+export const getAllPreMadeBoxes = async () => {
+  const sql = `
+  SELECT * FROM pre_made_boxes ORDER BY id
+  `;
+  const { rows: preMadeBoxes } = await db.query(sql);
+  return preMadeBoxes;
+};
+
+export const getPreMadeBoxById = async (id) => {
+  const sql = `
+  SELECT 
+    pre_made_boxes.id AS pre_made_box_id,
+    pre_made_boxes.name,
+    pre_made_boxes.description,
+    pre_made_boxes.image_url,
+    pre_made_boxes.price,
+    (SELECT json_agg(json_build_object(
+    'pre_made_box_content_id', pre_made_box_contents.id,
+    'nigiri_id', nigiris.id,
+    'nigiri_name', nigiris.name,
+    'nigiri_category', nigiris.category,
+    'nigiri_image_url', nigiris.image_url,
+    'nigiri_price', nigiris.price)
+    ) FROM
+        nigiris
+      JOIN 
+        pre_made_box_contents ON pre_made_box_contents.pre_made_box_id = pre_made_boxes.id
+    ) AS
+        contents
+    FROM
+      pre_made_boxes
+    WHERE
+      pre_made_boxes.id = $1
+  `;
+  const {
+    rows: [preMadeBox],
+  } = await db.query(sql, [id]);
+  return preMadeBox;
+};
