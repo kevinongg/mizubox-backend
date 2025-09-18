@@ -8,7 +8,9 @@ import {
   createPreMadeBox,
 } from "./queries/preMadeBoxes.js";
 import {
+  addExtraToUserCustomBox,
   addNigiriToUserCustomBox,
+  addSauceToUserCustomBox,
   createUserCustomBox,
 } from "./queries/UserCustomBoxes.js";
 import { addItemToCart, createCart } from "./queries/cart.js";
@@ -187,6 +189,14 @@ const seed = async () => {
   await addNigiriToUserCustomBox(customBox.id, nigiris[1].id, 4);
   await addNigiriToUserCustomBox(customBox.id, nigiris[2].id, 4);
   await addNigiriToUserCustomBox(customBox.id, nigiris[3].id, 2);
+  //*** Assign sauce to created custom box ***//
+  await addSauceToUserCustomBox(customBox.id, sauces[0].id, 2);
+  await addSauceToUserCustomBox(customBox.id, sauces[1].id, 1);
+  await addSauceToUserCustomBox(customBox.id, sauces[2].id, 3);
+  //*** Assign extra to created custom box ***//
+  await addExtraToUserCustomBox(customBox.id, extras[0].id, 3);
+  await addExtraToUserCustomBox(customBox.id, extras[1].id, 2);
+  await addExtraToUserCustomBox(customBox.id, extras[2].id, 1);
 
   //*** create cart ***//
   const cart = await createCart(users[0].id);
