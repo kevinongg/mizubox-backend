@@ -13,6 +13,8 @@ import {
 } from "./queries/UserCustomBoxes.js";
 import { addItemToCart, createCart } from "./queries/cart.js";
 import { addItemToOrder, createOrder } from "./queries/orders.js";
+import { createSauce } from "./queries/sauces.js";
+import { createExtra } from "./queries/extras.js";
 
 const seed = async () => {
   //*** Create 2 test users ***//
@@ -77,7 +79,7 @@ const seed = async () => {
   ];
 
   let nigiris = [];
-  for (let item of nigiriList) {
+  for (const item of nigiriList) {
     const nigiri = await createNigiri(
       item.name,
       item.category,
@@ -88,7 +90,82 @@ const seed = async () => {
     );
     nigiris.push(nigiri);
   }
-  // console.log(nigiris);
+
+  //*** Create a couple of sauces ***//
+  const sauceList = [
+    {
+      name: "Koikuchi Soy Sauce",
+      description:
+        "Shimanto Domeki’s soy sauce infused with Japanese dashi soda katsuo (large shavings of bonito flakes) and koikuchi (full-bodied), creating an umami-rich soy sauce.",
+      imageUrl:
+        "https://shop.yamaseafood.com/cdn/shop/files/Koikuchi.png?v=1743499072&width=1100",
+      price: 12.5,
+    },
+    {
+      name: "Yuzu Kosho",
+      description:
+        "A unique sauce combining the citrusy heat of yuzu kosho (a fermented chili and citrus paste)",
+      imageUrl: "https://m.media-amazon.com/images/I/71b6Tznyk2L._SL1500_.jpg",
+      price: 21.97,
+    },
+    {
+      name: "Chili Crisp",
+      description:
+        "A flavorful condiment with a satisfying crunch, made from chili peppers and various spices.",
+      imageUrl: "https://m.media-amazon.com/images/I/61RSoIGGXeL._SL1000_.jpg",
+      price: 19.5,
+    },
+  ];
+
+  let sauces = [];
+  for (const item of sauceList) {
+    const sauce = await createSauce(
+      item.name,
+      item.description,
+      item.imageUrl,
+      item.price
+    );
+    sauces.push(sauce);
+  }
+
+  //*** Create a couple of extras ***//
+  const extraList = [
+    {
+      name: "Udama (Quail Eggs)",
+      description:
+        "Udama (Quail Eggs) we source are from California. Produced by a very well respected farm. 10pc per pack.",
+      imageUrl:
+        "https://shop.yamaseafood.com/cdn/shop/products/Udama_QuailEggs-684941.png?v=1707412584&width=493",
+      price: 2.95,
+    },
+    {
+      name: "Hon Wasabi",
+      description:
+        "Called `Real Wasabi` Is made from high quality wasabi grown at Shizuoka.",
+      imageUrl:
+        "https://shop.yamaseafood.com/cdn/shop/files/WebsitePhotos_eea024d3-17f8-4843-a939-01ddf380a4e6.png?v=1743427015&width=493",
+      price: 7.0,
+    },
+    {
+      name: "Fresh Burgundy Black Truffle",
+      description:
+        "Burgundy Truffles have an intense, hazelnut-like aroma and are highly prized for their gastronomic qualities. They are used in the haute cuisine of France and Italy, as well as a substitute for the Périgord black truffle (T. melanosporum).",
+      imageUrl:
+        "https://shop.yamaseafood.com/cdn/shop/products/FreshBurgundyBlackTruffle_TuberUncinatum-450954.png?v=1707412525&width=493",
+      price: 50,
+    },
+  ];
+
+  const extras = [];
+  for (const item of extraList) {
+    const extra = await createExtra(
+      item.name,
+      item.description,
+      item.imageUrl,
+      item.price
+    );
+    extras.push(extra);
+  }
 
   //*** Create pre-made mizubox ***//
   const preMade = await createPreMadeBox(
@@ -97,7 +174,6 @@ const seed = async () => {
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJ5nBaf-V43FujPdINAJJaSQQ5z-aUIUcMcA&s",
     80.0
   );
-  // console.log(mizuBox);
 
   //*** Assign nigiri into created mizubox ***//
   await addNigiriToPreMadeBox(preMade.id, nigiris[0].id, 5);
@@ -112,15 +188,15 @@ const seed = async () => {
   await addNigiriToUserCustomBox(customBox.id, nigiris[2].id, 4);
   await addNigiriToUserCustomBox(customBox.id, nigiris[3].id, 2);
 
-  // create cart
+  //*** create cart ***//
   const cart = await createCart(users[0].id);
-  // add item to cart
+  //*** add item to cart
   await addItemToCart(cart.id, "pre-made", preMade.id, 1);
   await addItemToCart(cart.id, "custom", customBox.id, 1);
 
-  // create order
+  //*** create order ***//
   const order = await createOrder(users[0].id, 200.0, "placed");
-  // add item to order
+  //*** add item to order ***//
   await addItemToOrder(order.id, "pre-made", preMade.id, 1);
   await addItemToOrder(order.id, "custom", customBox.id, 1);
 };
