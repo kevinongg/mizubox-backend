@@ -12,6 +12,7 @@ import {
   createUserCustomBox,
 } from "./queries/UserCustomBoxes.js";
 import { addItemToCart, createCart } from "./queries/cart.js";
+import { addItemToOrder, createOrder } from "./queries/orders.js";
 
 const seed = async () => {
   //*** Create 2 test users ***//
@@ -114,12 +115,14 @@ const seed = async () => {
   // create cart
   const cart = await createCart(users[0].id);
   // add item to cart
-  await addItemToCart(cart.id, `pre-made`, preMade.id, 1);
-  await addItemToCart(cart.id, `custom`, customBox.id, 1);
+  await addItemToCart(cart.id, "pre-made", preMade.id, 1);
+  await addItemToCart(cart.id, "custom", customBox.id, 1);
 
   // create order
-
+  const order = await createOrder(users[0].id, 200.0, "placed");
   // add item to order
+  await addItemToOrder(order.id, "pre-made", preMade.id, 1);
+  await addItemToOrder(order.id, "custom", customBox.id, 1);
 };
 await db.connect();
 await seed();

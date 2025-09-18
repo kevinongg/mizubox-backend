@@ -147,7 +147,7 @@ CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id),
   total_price DECIMAL(10,2) NOT NULL,
-  status TEXT DEFAULT 'pending', -- (eg.. 'pending', 'confirmed', 'delivered')
+  status TEXT DEFAULT 'placed', -- (eg.. 'placed', 'confirmed', 'delivered')
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
