@@ -13,6 +13,7 @@ import nigiriRoutes from "#api/nigiris";
 import preMadeBoxRoutes from "#api/preMadeBoxes";
 import sauceRoutes from "#api/sauces";
 import extraRoutes from "#api/extras";
+import menuItemRoutes from "#api/menuItems";
 
 
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
@@ -28,6 +29,7 @@ app.use("/nigiris", nigiriRoutes);
 app.use("/pre-made-boxes", preMadeBoxRoutes);
 app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
+app.use("/menuItems", menuItemRoutes);
 
 
 app.route("/").get((req, res) => {
