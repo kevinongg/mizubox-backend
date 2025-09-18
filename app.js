@@ -15,7 +15,7 @@ import sauceRoutes from "#api/sauces";
 import extraRoutes from "#api/extras";
 import menuItemRoutes from "#api/menuItems";
 import nigiriRoutes from "#api/nigiris";
-import menuItemRoutes from "#api/menuItems";
+
 
 
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
