@@ -41,7 +41,6 @@ export const addSauceToUserCustomBox = async (
   const {
     rows: [sauceToCustomBox],
   } = await db.query(sql, [userCustomBoxId, sauceId, quantity]);
-  console.log(sauceToCustomBox);
   return sauceToCustomBox;
 };
 
@@ -58,6 +57,5 @@ export const addExtraToUserCustomBox = async (
   const {
     rows: [extraToCustomBox],
   } = await db.query(sql, [userCustomBoxId, extraId, quantity]);
-  console.log(extraToCustomBox);
   return extraToCustomBox;
 };

@@ -12,7 +12,7 @@ export const createOrder = async (userId, totalPrice, status) => {
   return order;
 };
 
-export const addItemToOrder = async (orderId, boxType, boxId, quantity) => {
+export const addOrderItemBox = async (orderId, boxType, boxId, quantity) => {
   if (boxType === "pre-made") {
     const sql = `
     INSERT INTO order_items(order_id, box_type, pre_made_box_id, quantity) 
@@ -20,9 +20,9 @@ export const addItemToOrder = async (orderId, boxType, boxId, quantity) => {
     RETURNING *
     `;
     const {
-      rows: [orderItem],
+      rows: [orderItemBox],
     } = await db.query(sql, [orderId, boxType, boxId, quantity]);
-    return orderItem;
+    return orderItemBox;
   }
 
   if (boxType === "custom") {
@@ -32,8 +32,47 @@ export const addItemToOrder = async (orderId, boxType, boxId, quantity) => {
     RETURNING *
     `;
     const {
-      rows: [orderItem],
+      rows: [orderItemBox],
     } = await db.query(sql, [orderId, boxType, boxId, quantity]);
-    return orderItem;
+    return orderItemBox;
   }
+};
+
+export const addOrderItemNigiri = async (orderItemId, nigiriId, quantity) => {
+  const sql = `
+  INSERT INTO order_item_nigiris(order_item_id, nigiri_id, quantity) 
+  VALUES($1, $2, $3) 
+  RETURNING *
+  `;
+  const {
+    rows: [orderItemNigiri],
+  } = await db.query(sql, [orderItemId, nigiriId, quantity]);
+  console.log(orderItemNigiri);
+  return orderItemNigiri;
+};
+
+export const addOrderItemSauce = async (orderItemId, sauceId, quantity) => {
+  const sql = `
+  INSERT INTO order_item_sauces(order_item_id, sauce_id, quantity) 
+  VALUES($1, $2, $3) 
+  RETURNING *
+  `;
+  const {
+    rows: [orderItemSauce],
+  } = await db.query(sql, [orderItemId, sauceId, quantity]);
+  console.log(orderItemSauce);
+  return orderItemSauce;
+};
+
+export const addOrderItemExtra = async (orderItemId, extraId, quantity) => {
+  const sql = `
+  INSERT INTO order_item_extras(order_item_id, extra_id, quantity) 
+  VALUES($1, $2, $3) 
+  RETURNING *
+  `;
+  const {
+    rows: [orderItemExtra],
+  } = await db.query(sql, [orderItemId, extraId, quantity]);
+  console.log(orderItemExtra);
+  return orderItemExtra;
 };

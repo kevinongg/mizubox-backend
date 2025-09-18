@@ -14,7 +14,13 @@ import {
   createUserCustomBox,
 } from "./queries/UserCustomBoxes.js";
 import { addItemToCart, createCart } from "./queries/cart.js";
-import { addItemToOrder, createOrder } from "./queries/orders.js";
+import {
+  addOrderItemBox,
+  addOrderItemExtra,
+  addOrderItemNigiri,
+  addOrderItemSauce,
+  createOrder,
+} from "./queries/orders.js";
 import { createSauce } from "./queries/sauces.js";
 import { createExtra } from "./queries/extras.js";
 
@@ -219,10 +225,30 @@ const seed = async () => {
 
   //*** Create order ***//
   const order = await createOrder(users[0].id, 200.0, "placed");
-  //*** add item to order ***//
-  await addItemToOrder(order.id, "pre-made", preMade.id, 1);
-  await addItemToOrder(order.id, "custom", customBox.id, 1);
+  //*** Add box to order ***//
+  const orderPreMade = await addOrderItemBox(
+    order.id,
+    "pre-made",
+    preMade.id,
+    1
+  );
+  const orderCustom = await addOrderItemBox(
+    order.id,
+    "custom",
+    customBox.id,
+    1
+  );
+  //*** Add nigiris to order referencing custom box ***//
+  await addOrderItemNigiri(orderCustom.id, nigiris[0].id, 7);
+  await addOrderItemNigiri(orderCustom.id, nigiris[1].id, 7);
+  //*** Add sauces to order referencing custom box ***//
+  await addOrderItemSauce(orderCustom.id, sauces[0].id, 2);
+  await addOrderItemSauce(orderCustom.id, sauces[1].id, 1);
+  //*** Add extras to order referencing custom box ***//
+  await addOrderItemExtra(orderCustom.id, extras[0].id, 1);
+  await addOrderItemExtra(orderCustom.id, extras[1].id, 2);
 };
+
 await db.connect();
 await seed();
 await db.end();
