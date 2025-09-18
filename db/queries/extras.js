@@ -9,6 +9,5 @@ export const createExtra = async (name, description, imageUrl, price) => {
   const {
     rows: [extra],
   } = await db.query(sql, [name, description, imageUrl, price]);
-  console.log(extra);
   return extra;
 };
