@@ -4,7 +4,7 @@ export default router;
 
 import { getAllNigiris, getNigiriById } from "#db/queries/nigiris";
 
-router.route("/").get(async (req, res) => {
+router.route("/").get(async (req, res, next) => {
   try {
     const nigiris = await getAllNigiris();
     return res.status(200).send(nigiris);
@@ -25,7 +25,7 @@ router.param("id", async (req, res, next, id) => {
   }
 });
 
-router.route("/:id").get(async (req, res) => {
+router.route("/:id").get(async (req, res, next) => {
   try {
     res.status(200).send(req.nigiri);
   } catch (error) {
