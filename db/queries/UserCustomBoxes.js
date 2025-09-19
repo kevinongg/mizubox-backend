@@ -80,7 +80,8 @@ export const getUserCustomBoxById = async (id) => {
       ) AS contents,
 
     (SELECT json_agg(json_build_object(
-      'sauce_id', user_custom_box_sauces.sauce_id,
+      'user_custom_box_sauce_id', user_custom_box_sauces.id,
+      'sauce_id', sauces.id,
       'name', sauces.name,
       'description', sauces.description,
       'image_url', sauces.image_url,
@@ -96,6 +97,7 @@ export const getUserCustomBoxById = async (id) => {
       ) AS sauces,
     
     (SELECT json_agg(json_build_object(
+      'user_custom_box_extra_id', user_custom_box_extras.id,
       'extra_id', user_custom_box_extras.extra_id,
       'name', extras.name,
       'description', extras.description,
@@ -120,4 +122,58 @@ export const getUserCustomBoxById = async (id) => {
     rows: [customBox],
   } = await db.query(sql, [id]);
   return customBox;
+};
+
+// update quantity of a nigiri inside a user's custom box
+export const updateUserCustomBoxNigiriQuantity = async (
+  quantity,
+  userCustomBoxId,
+  nigiriId
+) => {
+  const sql = `
+  UPDATE user_custom_box_contents 
+  SET quantity = $1 
+  WHERE user_custom_box_id = $2 AND nigiri_id = $3 
+  RETURNING *
+  `;
+  const {
+    rows: [updatedNigiri],
+  } = await db.query(sql, [quantity, userCustomBoxId, nigiriId]);
+  return updatedNigiri;
+};
+
+export const updateUserCustomBoxSauceQuantity = async (
+  quantity,
+  userCustomBoxId,
+  sauceId
+) => {
+  const sql = `
+  UPDATE user_custom_box_sauces
+  SET quantity = $1
+  WHERE user_custom_box_id = $2 AND sauce_id = $3
+  RETURNING *
+  `;
+  const {
+    rows: [updatedSauce],
+  } = await db.query(sql, [quantity, userCustomBoxId, sauceId]);
+  return updatedSauce;
+};
+
+export const updateUserCustomBoxExtraQuantity = async (
+  quantity,
+  userCustomBoxId,
+  extraId
+) => {
+  const sql = `
+  UPDATE user_custom_box_extras
+  SET quantity = $1
+  WHERE user_custom_box_id = $2 AND extra_id = $3
+  RETURNING *
+  `;
+  const { rows: updatedExtra } = await db.query(sql, [
+    quantity,
+    userCustomBoxId,
+    extraId,
+  ]);
+  return updatedExtra;
 };
