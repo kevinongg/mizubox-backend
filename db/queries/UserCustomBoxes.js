@@ -27,7 +27,7 @@ export const addNigiriToUserCustomBox = async (userCustomBoxId, nigiriId) => {
 
 export const addSauceToUserCustomBox = async (userCustomBoxId, sauceId) => {
   const sql = `
-  INSERT INTO user_custom_box_sauces(user_custom_box_id, sauce_id, ) 
+  INSERT INTO user_custom_box_sauces(user_custom_box_id, sauce_id) 
   VALUES($1, $2) 
   RETURNING *
   `;
