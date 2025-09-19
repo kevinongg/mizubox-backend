@@ -13,6 +13,8 @@ import preMadeBoxRoutes from "#api/preMadeBoxes";
 import sauceRoutes from "#api/sauces";
 import extraRoutes from "#api/extras";
 import userCustomBoxRoutes from "#api/UserCustomBoxes";
+import orderRoutes from "#api/order";
+import cartRoutes from "#api/cart";
 
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
 app.use(express.json());
@@ -26,6 +28,8 @@ app.use("/pre-made-boxes", preMadeBoxRoutes);
 app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
 app.use("/user-custom-boxes", userCustomBoxRoutes);
+app.use("/orders", orderRoutes);
+app.use("/carts", cartRoutes);
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");

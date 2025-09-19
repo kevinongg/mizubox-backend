@@ -107,8 +107,6 @@ CREATE TABLE user_custom_box_extras (
 );
 
 
-
-
 /* ========= PRE-MADE BOXES ========= */
 -- Sets of nigiri selected by chef
 CREATE TABLE pre_made_boxes (
