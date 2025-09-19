@@ -2,7 +2,6 @@ import db from "#db/client";
 
 // ------------------CART QUERIES-------------------------
 
-
 // -------------------create cart for user --------------
 export const createCart = async (userId) => {
   const sql = `
@@ -71,6 +70,16 @@ export const updateCartItemQuantity = async (cartItemId, action) => {
     rows: [updatedCartItem],
   } = await db.query(sql, [cartItemId, action]);
   return updatedCartItem;
+};
+
+// ------------------get cartItem by user id ----------------------
+
+export const getCartItemsByCartId = async (cart_id) => {
+  const sql = `
+  SELECT * FROM cart_items WHERE cart_id = $1
+  `;
+  const { rows: cartItems } = await db.query(sql, [cart_id]);
+  return cartItems;
 };
 
 // ------------------delete cart item by user id ----------------------

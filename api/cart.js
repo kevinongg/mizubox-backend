@@ -6,15 +6,17 @@ import {
   addItemToCart,
   updateCartItemQuantity,
   deleteCartItem,
-  getCartByUserId 
+  getCartByUserId,
+  getCartItemsByCartId,
 } from "#db/queries/cart";
 
 const router = express.Router();
+router.use(requireUser);
 export default router;
 
 // ------------------GET /cart -> return logged in user's cart
 
-router.route("/").get(requireUser, async (req, res, next) => {
+router.route("/").get(async (req, res, next) => {
   try {
     const cart = await getCartByUserId(req.user.id);
     return res.status(200).send(cart);
@@ -25,24 +27,22 @@ router.route("/").get(requireUser, async (req, res, next) => {
 
 // ------------------POST /cart -> create new cart row if none exists for user--------------
 
-router
-  .route("/")
-  .post(requireUser, requireBody(["userId"]), async (req, res, next) => {
-    try {
-      if (req.user.id !== req.body.userId) {
-        console.log(req.user.id, req.body.userId);
-        return res.status(403).send("You can only create a cart for yourself");
-      }
-      const existingCart = await getCartByUserId(req.body.userId);
-      if (existingCart) {
-        return res.status(400).send("Cart already exists for this user");
-      }
-      const newCart = await createCart(req.body.userId);
-      return res.status(201).send(newCart);
-    } catch (error) {
-      return next(error);
+router.route("/").post(requireBody(["userId"]), async (req, res, next) => {
+  try {
+    if (req.user.id !== req.body.userId) {
+      console.log(req.user.id, req.body.userId);
+      return res.status(403).send("You can only create a cart for yourself");
     }
-  });
+    const existingCart = await getCartByUserId(req.body.userId);
+    if (existingCart) {
+      return res.status(400).send("Cart already exists for this user");
+    }
+    const newCart = await createCart(req.body.userId);
+    return res.status(201).send(newCart);
+  } catch (error) {
+    return next(error);
+  }
+});
 
 // -----------------------------POST /cart/items ->add a box to the cart---------------------------
 // ----------------------------request body {box_type, pre_made_box_id, user_custom_box_id, quantity}
@@ -50,11 +50,11 @@ router
 router
   .route("/items")
   .post(
-    requireUser,
     requireBody(["cartId", "boxType", "boxId", "quantity"]),
     async (req, res, next) => {
       try {
         const cart = await getCartByUserId(req.user.id);
+        console.log(cart, req.body.cartId);
         if (!cart || cart.id !== req.body.cartId) {
           return res
             .status(403)
@@ -78,49 +78,48 @@ router
 
 router
   .route("/items/:id")
-  .put(
-    requireUser,
-    requireBody(["cartId", "action"]),
-    async (req, res, next) => {
-      try {
-        const cart = await getCartByUserId(req.user.id);
-        if (!cart || cart.id !== req.body.cartId) {
-          return res
-            .status(403)
-            .send("You can only update items in your own cart");
-        }
-        const updatedCartItem = await updateCartItemQuantity(
-          req.params.id,
-          req.body.action
-        );
-        if (!updatedCartItem) {
-          return res.status(404).send("Cart item not found");
-        }
-        return res.status(200).send(updatedCartItem);
-      } catch (error) {
-        return next(error);
-      }
-    }
-  );
-
-// ------------------DELETE /cart/items/:id -> Remove a box from the cart-----------------------------
-
-router
-  .route("/items/:id")
-  .delete(requireUser, requireBody(["cartId"]), async (req, res, next) => {
+  .put(requireBody(["cartId", "action"]), async (req, res, next) => {
     try {
       const cart = await getCartByUserId(req.user.id);
       if (!cart || cart.id !== req.body.cartId) {
         return res
           .status(403)
-          .send("You can only delete items from your own cart");
+          .send("You can only update items in your own cart");
       }
-      const deleted = await deleteCartItem(req.params.id);
-      if (!deleted) {
+      const updatedCartItem = await updateCartItemQuantity(
+        req.params.id,
+        req.body.action
+      );
+      if (!updatedCartItem) {
         return res.status(404).send("Cart item not found");
       }
-      return res.status(204).send();
+      return res.status(200).send(updatedCartItem);
     } catch (error) {
       return next(error);
     }
   });
+
+// ------------------DELETE /cart/items/:id -> Remove a box from the cart-----------------------------
+
+router.route("/items/:id").delete(async (req, res, next) => {
+  try {
+    const cart = await getCartByUserId(req.user.id);
+    const cart_items = await getCartItemsByCartId(cart.id);
+    const itemExists = cart_items.some(
+      (item) => item.id === parseInt(req.params.id)
+    );
+    console.log(itemExists);
+    if (!cart || !itemExists) {
+      return res
+        .status(403)
+        .send("You can only delete items from your own cart");
+    }
+    const deleted = await deleteCartItem(req.params.id);
+    if (!deleted) {
+      return res.status(404).send("Cart item not found");
+    }
+    return res.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+});
