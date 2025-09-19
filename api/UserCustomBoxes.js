@@ -49,11 +49,11 @@ router.param("id", async (req, res, next, id) => {
 
 router.route("/:id").get(async (req, res, next) => {
   try {
-    if (req.user.id !== req.userCustomBox.user_id) {
-      return res
-        .status(403)
-        .send("You are not authorized to view this custom box");
-    }
+    // if (req.user.id !== req.userCustomBox.user_id) {
+    //   return res
+    //     .status(403)
+    //     .send("You are not authorized to view this custom box");
+    // }
     res.status(200).send(req.userCustomBox);
   } catch (error) {
     next(error);
