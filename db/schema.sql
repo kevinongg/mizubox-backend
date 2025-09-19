@@ -85,7 +85,8 @@ CREATE TABLE user_custom_box_contents (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
   nigiri_id INT NOT NULL REFERENCES nigiris(id),
-  quantity INT DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1,
+  UNIQUE(user_custom_box_id, nigiri_id)
 );
 
 /* ========= JUNCTION TABLE (CUSTOM BOXES & SAUCES [many-to-many]) ========= */
@@ -94,7 +95,8 @@ CREATE TABLE user_custom_box_sauces (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
   sauce_id INT NOT NULL REFERENCES sauces(id),
-  quantity INT DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1,
+  UNIQUE(user_custom_box_id, sauce_id)
 );
 
 /* ========= JUNCTION TABLE (CUSTOM BOXES & EXTRAS [many-to-many]) ========= */
@@ -103,7 +105,8 @@ CREATE TABLE user_custom_box_extras (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
   extra_id INT NOT NULL REFERENCES extras(id),
-  quantity INT DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1,
+  UNIQUE(user_custom_box_id, extra_id)
 );
 
 
