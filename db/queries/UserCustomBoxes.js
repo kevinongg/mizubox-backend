@@ -12,52 +12,40 @@ export const createUserCustomBox = async (userId) => {
   return customBox;
 };
 
-export const addNigiriToUserCustomBox = async (
-  userCustomBoxId,
-  nigiriId,
-  quantity
-) => {
+export const addNigiriToUserCustomBox = async (userCustomBoxId, nigiriId) => {
   const sql = `
-  INSERT INTO user_custom_box_contents(user_custom_box_id, nigiri_id, quantity) 
-  VALUES($1, $2, $3) 
+  INSERT INTO user_custom_box_contents(user_custom_box_id, nigiri_id) 
+  VALUES($1, $2) 
   RETURNING *
   `;
 
   const {
     rows: [nigiriToCustomBox],
-  } = await db.query(sql, [userCustomBoxId, nigiriId, quantity]);
+  } = await db.query(sql, [userCustomBoxId, nigiriId]);
   return nigiriToCustomBox;
 };
 
-export const addSauceToUserCustomBox = async (
-  userCustomBoxId,
-  sauceId,
-  quantity
-) => {
+export const addSauceToUserCustomBox = async (userCustomBoxId, sauceId) => {
   const sql = `
-  INSERT INTO user_custom_box_sauces(user_custom_box_id, sauce_id, quantity) 
-  VALUES($1, $2, $3) 
+  INSERT INTO user_custom_box_sauces(user_custom_box_id, sauce_id, ) 
+  VALUES($1, $2) 
   RETURNING *
   `;
   const {
     rows: [sauceToCustomBox],
-  } = await db.query(sql, [userCustomBoxId, sauceId, quantity]);
+  } = await db.query(sql, [userCustomBoxId, sauceId]);
   return sauceToCustomBox;
 };
 
-export const addExtraToUserCustomBox = async (
-  userCustomBoxId,
-  extraId,
-  quantity
-) => {
+export const addExtraToUserCustomBox = async (userCustomBoxId, extraId) => {
   const sql = `
-  INSERT INTO user_custom_box_extras(user_custom_box_id, extra_id, quantity) 
-  VALUES($1, $2, $3) 
+  INSERT INTO user_custom_box_extras(user_custom_box_id, extra_id) 
+  VALUES($1, $2) 
   RETURNING *
   `;
   const {
     rows: [extraToCustomBox],
-  } = await db.query(sql, [userCustomBoxId, extraId, quantity]);
+  } = await db.query(sql, [userCustomBoxId, extraId]);
   return extraToCustomBox;
 };
 

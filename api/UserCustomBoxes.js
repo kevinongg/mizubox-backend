@@ -62,12 +62,11 @@ router.route("/:id").get(async (req, res, next) => {
 
 router
   .route("/:id/nigiris")
-  .post(requireBody(["nigiriId", "quantity"]), async (req, res, next) => {
-    const { nigiriId, quantity } = req.body;
+  .post(requireBody(["nigiriId"]), async (req, res, next) => {
+    const { nigiriId } = req.body;
     const addNigiri = await addNigiriToUserCustomBox(
       req.userCustomBox.user_custom_box_id,
-      nigiriId,
-      quantity
+      nigiriId
     );
     return res.status(201).send(addNigiri);
   });
