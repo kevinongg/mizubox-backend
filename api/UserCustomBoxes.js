@@ -3,7 +3,9 @@ const router = express.Router();
 export default router;
 
 import {
+  addExtraToUserCustomBox,
   addNigiriToUserCustomBox,
+  addSauceToUserCustomBox,
   createUserCustomBox,
   getAllCustomBoxesByUserId,
   getUserCustomBoxById,
@@ -37,7 +39,6 @@ router.param("id", async (req, res, next, id) => {
   try {
     const numId = Number(id);
     const userCustomBox = await getUserCustomBoxById(numId);
-    console.log(userCustomBox);
     if (!userCustomBox)
       return res.status(404).send("User's custom box not found");
     req.userCustomBox = userCustomBox;
@@ -49,11 +50,11 @@ router.param("id", async (req, res, next, id) => {
 
 router.route("/:id").get(async (req, res, next) => {
   try {
-    // if (req.user.id !== req.userCustomBox.user_id) {
-    //   return res
-    //     .status(403)
-    //     .send("You are not authorized to view this custom box");
-    // }
+    if (req.user.id !== req.userCustomBox.user_id) {
+      return res
+        .status(403)
+        .send("You are not authorized to view this custom box");
+    }
     res.status(200).send(req.userCustomBox);
   } catch (error) {
     next(error);
@@ -63,10 +64,59 @@ router.route("/:id").get(async (req, res, next) => {
 router
   .route("/:id/nigiris")
   .post(requireBody(["nigiriId"]), async (req, res, next) => {
-    const { nigiriId } = req.body;
-    const addNigiri = await addNigiriToUserCustomBox(
-      req.userCustomBox.user_custom_box_id,
-      nigiriId
-    );
-    return res.status(201).send(addNigiri);
+    try {
+      if (req.user.id !== req.userCustomBox.user_id) {
+        return res
+          .status(403)
+          .send("You are not authorized to modify this custom box");
+      }
+      const { nigiriId } = req.body;
+      const addNigiri = await addNigiriToUserCustomBox(
+        req.userCustomBox.user_custom_box_id,
+        nigiriId
+      );
+      return res.status(201).send(addNigiri);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+router
+  .route("/:id/sauces")
+  .post(requireBody(["sauceId"]), async (req, res, next) => {
+    try {
+      if (req.user.id !== req.userCustomBox.user_id) {
+        return res
+          .status(403)
+          .send("You are not authorized to modify this custom box");
+      }
+      const { sauceId } = req.body;
+      const addSauce = await addSauceToUserCustomBox(
+        req.userCustomBox.user_custom_box_id,
+        sauceId
+      );
+      return res.status(201).send(addSauce);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+router
+  .route("/:id/extras")
+  .post(requireBody(["extraId"]), async (req, res, next) => {
+    try {
+      if (req.user.id !== req.userCustomBox.user_id) {
+        return res
+          .status(403)
+          .send("You are not authorized to modify this custom box");
+      }
+      const { extraId } = req.body;
+      const addExtra = await addExtraToUserCustomBox(
+        req.userCustomBox.user_custom_box_id,
+        extraId
+      );
+      return res.status(201).send(addExtra);
+    } catch (error) {
+      next(error);
+    }
   });
