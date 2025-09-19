@@ -12,6 +12,7 @@ import nigiriRoutes from "#api/nigiris";
 import preMadeBoxRoutes from "#api/preMadeBoxes";
 import sauceRoutes from "#api/sauces";
 import extraRoutes from "#api/extras";
+import userCustomBoxRoutes from "#api/UserCustomBoxes";
 
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
 app.use(express.json());
@@ -24,6 +25,7 @@ app.use("/nigiris", nigiriRoutes);
 app.use("/pre-made-boxes", preMadeBoxRoutes);
 app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
+app.use("/user-custom-boxes", userCustomBoxRoutes);
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");
