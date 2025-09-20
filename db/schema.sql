@@ -136,7 +136,9 @@ CREATE TABLE pre_made_box_contents (
 -- Cart logged and linked to each user
 CREATE TABLE cart (
   id SERIAL PRIMARY KEY,
-  user_id INT REFERENCES users(id) ON DELETE CASCADE
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'active', --(eg.. 'active' || 'checked_out')
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 /* ========= JUNCTION TABLE (CART & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */

@@ -29,7 +29,7 @@ app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
 app.use("/user-custom-boxes", userCustomBoxRoutes);
 app.use("/orders", orderRoutes);
-app.use("/carts", cartRoutes);
+app.use("/cart", cartRoutes);
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");

@@ -1,20 +1,23 @@
 import express from "express";
-import requireBody from "#middleware/requireBody";
-import requireUser from "#middleware/requireUser";
+const router = express.Router();
+export default router;
+
 import {
   createCart,
   addItemToCart,
   updateCartItemQuantity,
   deleteCartItem,
-  getCartByUserId 
+  getCartByUserId,
 } from "#db/queries/cart";
 
-const router = express.Router();
-export default router;
+import requireBody from "#middleware/requireBody";
+import requireUser from "#middleware/requireUser";
+
+router.use(requireUser);
 
 // ------------------GET /cart -> return logged in user's cart
 
-router.route("/").get(requireUser, async (req, res, next) => {
+router.route("/").get(async (req, res, next) => {
   try {
     const cart = await getCartByUserId(req.user.id);
     return res.status(200).send(cart);
@@ -25,24 +28,22 @@ router.route("/").get(requireUser, async (req, res, next) => {
 
 // ------------------POST /cart -> create new cart row if none exists for user--------------
 
-router
-  .route("/")
-  .post(requireUser, requireBody(["userId"]), async (req, res, next) => {
-    try {
-      if (req.user.id !== req.body.userId) {
-        console.log(req.user.id, req.body.userId);
-        return res.status(403).send("You can only create a cart for yourself");
-      }
-      const existingCart = await getCartByUserId(req.body.userId);
-      if (existingCart) {
-        return res.status(400).send("Cart already exists for this user");
-      }
-      const newCart = await createCart(req.body.userId);
-      return res.status(201).send(newCart);
-    } catch (error) {
-      return next(error);
+router.route("/").post(requireBody(["userId"]), async (req, res, next) => {
+  try {
+    if (req.user.id !== req.body.userId) {
+      console.log(req.user.id, req.body.userId);
+      return res.status(403).send("You can only create a cart for yourself");
     }
-  });
+    const existingCart = await getCartByUserId(req.body.userId);
+    if (existingCart) {
+      return res.status(400).send("Cart already exists for this user");
+    }
+    const newCart = await createCart(req.body.userId);
+    return res.status(201).send(newCart);
+  } catch (error) {
+    return next(error);
+  }
+});
 
 // -----------------------------POST /cart/items ->add a box to the cart---------------------------
 // ----------------------------request body {box_type, pre_made_box_id, user_custom_box_id, quantity}
