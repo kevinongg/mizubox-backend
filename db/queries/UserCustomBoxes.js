@@ -125,7 +125,7 @@ export const getUserCustomBoxById = async (id) => {
 };
 
 // update quantity of a nigiri inside a user's custom box
-export const updateUserCustomBoxNigiriQuantity = async (
+export const updateNigiriQuantityInUserCustomBox = async (
   quantity,
   userCustomBoxId,
   nigiriId
@@ -142,7 +142,7 @@ export const updateUserCustomBoxNigiriQuantity = async (
   return updatedNigiri;
 };
 
-export const updateUserCustomBoxSauceQuantity = async (
+export const updateSauceQuantityInUserCustomBox = async (
   quantity,
   userCustomBoxId,
   sauceId
@@ -159,7 +159,7 @@ export const updateUserCustomBoxSauceQuantity = async (
   return updatedSauce;
 };
 
-export const updateUserCustomBoxExtraQuantity = async (
+export const updateExtraQuantityInUserCustomBox = async (
   quantity,
   userCustomBoxId,
   extraId
@@ -170,10 +170,50 @@ export const updateUserCustomBoxExtraQuantity = async (
   WHERE user_custom_box_id = $2 AND extra_id = $3
   RETURNING *
   `;
-  const { rows: updatedExtra } = await db.query(sql, [
-    quantity,
-    userCustomBoxId,
-    extraId,
-  ]);
+  const {
+    rows: [updatedExtra],
+  } = await db.query(sql, [quantity, userCustomBoxId, extraId]);
   return updatedExtra;
+};
+
+export const deleteNigiriInUserCustomBox = async (
+  userCustomBoxId,
+  nigiriId
+) => {
+  const sql = `
+  DELETE 
+  FROM user_custom_box_contents
+  WHERE user_custom_box_id = $1 AND nigiri_id = $2
+  RETURNING *
+  `;
+  const {
+    rows: [deletedNigiri],
+  } = await db.query(sql, [userCustomBoxId, nigiriId]);
+  return deletedNigiri;
+};
+
+export const deleteSauceInUserCustomBox = async (userCustomBoxId, sauceId) => {
+  const sql = `
+  DELETE 
+  FROM user_custom_box_sauces
+  WHERE user_custom_box_id = $1 AND sauce_id = $2
+  RETURNING *
+  `;
+  const {
+    rows: [deletedSauce],
+  } = await db.query(sql, [userCustomBoxId, sauceId]);
+  return deletedSauce;
+};
+
+export const deleteExtraInUserCustomBox = async (userCustomBoxId, extraId) => {
+  const sql = `
+  DELETE
+  FROM user_custom_box_extras
+  WHERE user_custom_box_id = $1 AND extra_id = $2
+  RETURNING *
+  `;
+  const {
+    rows: [deletedExtra],
+  } = await db.query(sql, [userCustomBoxId, extraId]);
+  return deletedExtra;
 };
