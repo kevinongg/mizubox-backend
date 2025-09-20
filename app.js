@@ -27,8 +27,7 @@ app.use("/pre-made-boxes", preMadeBoxRoutes);
 app.use("/sauces", sauceRoutes);
 app.use("/extras", extraRoutes);
 app.use("/orders", orderRoutes);
-app.use("/carts", cartRoutes);
-
+app.use("/cart", cartRoutes);
 
 app.route("/").get((req, res) => {
   res.send("Welcome to MizuBox API");
