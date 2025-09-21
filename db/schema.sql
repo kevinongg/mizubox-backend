@@ -85,7 +85,8 @@ CREATE TABLE user_custom_box_contents (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
   nigiri_id INT NOT NULL REFERENCES nigiris(id),
-  quantity INT DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1,
+  UNIQUE(user_custom_box_id, nigiri_id)
 );
 
 /* ========= JUNCTION TABLE (CUSTOM BOXES & SAUCES [many-to-many]) ========= */
@@ -94,7 +95,8 @@ CREATE TABLE user_custom_box_sauces (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
   sauce_id INT NOT NULL REFERENCES sauces(id),
-  quantity INT DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1,
+  UNIQUE(user_custom_box_id, sauce_id)
 );
 
 /* ========= JUNCTION TABLE (CUSTOM BOXES & EXTRAS [many-to-many]) ========= */
@@ -103,7 +105,8 @@ CREATE TABLE user_custom_box_extras (
   id SERIAL PRIMARY KEY,
   user_custom_box_id INT NOT NULL REFERENCES user_custom_boxes(id) ON DELETE CASCADE,
   extra_id INT NOT NULL REFERENCES extras(id),
-  quantity INT DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1,
+  UNIQUE(user_custom_box_id, extra_id)
 );
 
 
@@ -133,7 +136,9 @@ CREATE TABLE pre_made_box_contents (
 -- Cart logged and linked to each user
 CREATE TABLE cart (
   id SERIAL PRIMARY KEY,
-  user_id INT REFERENCES users(id) ON DELETE CASCADE
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'active', --(eg.. 'active' || 'checked_out')
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 /* ========= JUNCTION TABLE (CART & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
@@ -145,7 +150,7 @@ CREATE TABLE cart_items (
   box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
-  quantity INT DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1
 );
 
 
