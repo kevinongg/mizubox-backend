@@ -71,7 +71,10 @@ export const getCartByUserId = async (userId) => {
                   'image_url', nigiris.image_url,
                   'price', nigiris.price,
                   'quantity', pre_made_box_contents.quantity
-                  ))
+                  )
+                  ORDER BY
+                    pre_made_box_contents.id ASC
+                  )
                   FROM
                     pre_made_box_contents
                   JOIN
@@ -79,7 +82,9 @@ export const getCartByUserId = async (userId) => {
                   WHERE
                     pre_made_box_contents.pre_made_box_id = pre_made_boxes.id
                   )
-            ))
+            )
+            ORDER BY pre_made_boxes.id ASC
+            )
             FROM 
               pre_made_boxes
             WHERE 
@@ -100,7 +105,10 @@ export const getCartByUserId = async (userId) => {
                   'image_url', nigiris.image_url,
                   'price', nigiris.price,
                   'quantity', user_custom_box_contents.quantity
-                ))
+                )
+                ORDER BY
+                  user_custom_box_contents.id ASC
+                )
                 FROM
                   user_custom_box_contents
                 JOIN
@@ -116,7 +124,10 @@ export const getCartByUserId = async (userId) => {
                   'description', sauces.description,
                   'image_url', sauces.image_url,
                   'price', sauces.price
-                ))
+                )
+                ORDER BY
+                  user_custom_box_sauces.id ASC
+                )
                 FROM
                   user_custom_box_sauces
                 JOIN
@@ -132,7 +143,10 @@ export const getCartByUserId = async (userId) => {
                 'description', extras.description,
                 'image_url', extras.image_url,
                 'price', extras.price
-                ))
+                )
+                ORDER BY
+                  user_custom_box_extras.id ASC
+                )
                 FROM
                   user_custom_box_extras
                 JOIN
@@ -140,17 +154,25 @@ export const getCartByUserId = async (userId) => {
                 WHERE
                   user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
                 )
-            ))
+            )
+            ORDER BY user_custom_boxes.id ASC
+            )
             FROM
               user_custom_boxes
             WHERE
               user_custom_boxes.id = cart_items.user_custom_box_id
             )
           END
-    ))
-    FROM cart_items
-    WHERE cart_items.cart_id = cart.id
-    ) AS items
+    )
+    ORDER BY 
+      cart_items.id ASC
+    )
+    FROM 
+      cart_items
+    WHERE 
+      cart_items.cart_id = cart.id
+    ) 
+      AS items
   FROM 
     cart 
   WHERE 

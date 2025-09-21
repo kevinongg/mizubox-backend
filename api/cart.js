@@ -99,9 +99,9 @@ router.param("id", async (req, res, next, id) => {
   if (!cartItem)
     return res.status(404).send("Cart item not found for this user");
 
-  console.log(cart.cart_id, cartItem.cart_id);
   req.cart = cart;
   req.cartItem = cartItem;
+  req.cartItemId = cartItemId;
   next();
 });
 
@@ -122,7 +122,7 @@ router
 
       const updatedCartItem = await updateCartItemQuantity(
         quantity,
-        req.cartItem.id
+        req.cartItemId
       );
       if (!updatedCartItem)
         return res.status(404).send("Cart item not found for this user");
@@ -135,20 +135,16 @@ router
 
 // ------------------DELETE /cart/items/:id -> Remove a box from the cart-----------------------------
 
-router
-  .route("/items/:id")
-  .delete(requireUser, requireBody(["cartId"]), async (req, res, next) => {
-    try {
-      if (!cart || cart.id !== req.body.cartId)
-        return res
-          .status(403)
-          .send("You can only delete items from your own cart");
+router.route("/items/:id").delete(async (req, res, next) => {
+  try {
+    if (req.cart.cart_id !== req.cartItem.cart_id)
+      return res.status(403).send("You can only delete items in your own cart");
 
-      const deleted = await deleteCartItem(req.params.id);
-      if (!deleted) return res.status(404).send("Cart item not found");
+    const deletedCartItem = await deleteCartItem(req.cartItemId);
+    if (!deletedCartItem) return res.status(404).send("Cart item not found");
 
-      return res.status(204).send(deleted);
-    } catch (error) {
-      return next(error);
-    }
-  });
+    return res.status(204).send(deletedCartItem);
+  } catch (error) {
+    return next(error);
+  }
+});
