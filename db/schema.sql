@@ -150,7 +150,7 @@ CREATE TABLE cart_items (
   box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
-  quantity INT DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1
 );
 
 

@@ -19,7 +19,7 @@ import {
 
 import requireUser from "#middleware/requireUser";
 import requireBody from "#middleware/requireBody";
-import { tr } from "@faker-js/faker";
+
 router.use(requireUser);
 
 router

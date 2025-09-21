@@ -15,28 +15,28 @@ export const createCart = async (userId) => {
 
 // ------------------add item to cart ----------------------
 
-export const addItemToCart = async (cartId, boxType, boxId, quantity) => {
+export const addItemToCart = async (cartId, boxType, boxId) => {
   if (boxType === "pre-made") {
     const sql = `
-  INSERT INTO cart_items(cart_id, box_type, pre_made_box_id, quantity)
-  VALUES($1, $2, $3, $4)
+  INSERT INTO cart_items(cart_id, box_type, pre_made_box_id)
+  VALUES($1, $2, $3)
   RETURNING *
   `;
     const {
       rows: [cartItem],
-    } = await db.query(sql, [cartId, boxType, boxId, quantity]);
+    } = await db.query(sql, [cartId, boxType, boxId]);
     return cartItem;
   }
 
   if (boxType === "custom") {
     const sql = `
-    INSERT INTO cart_items(cart_id, box_type, user_custom_box_id, quantity) 
-    VALUES($1, $2, $3, $4) 
+    INSERT INTO cart_items(cart_id, box_type, user_custom_box_id) 
+    VALUES($1, $2, $3) 
     RETURNING *
     `;
     const {
       rows: [cartItem],
-    } = await db.query(sql, [cartId, boxType, boxId, quantity]);
+    } = await db.query(sql, [cartId, boxType, boxId]);
     return cartItem;
   }
 };
@@ -164,20 +164,16 @@ export const getCartByUserId = async (userId) => {
 
 // ------------------update cart item quantity +1 or -1 ----------------------
 
-export const updateCartItemQuantity = async (cartItemId, action) => {
+export const updateCartItemQuantity = async (quantity) => {
   const sql = `
   UPDATE cart_items
-  SET quantity = CASE
-    WHEN $2 = 'increment' THEN quantity + 1
-    WHEN $2 = 'decrement' THEN GREATEST(quantity - 1, 0)
-    ELSE quantity
-  END
-  WHERE id = $1
+  SET quantity = $1
+  WHERE id = $2
   RETURNING *
   `;
   const {
     rows: [updatedCartItem],
-  } = await db.query(sql, [cartItemId, action]);
+  } = await db.query(sql, [quantity]);
   return updatedCartItem;
 };
 

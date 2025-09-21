@@ -20,6 +20,7 @@ router.use(requireUser);
 router.route("/").get(async (req, res, next) => {
   try {
     const cart = await getCartByUserId(req.user.id);
+    if (!cart) return res.status(404).send("Cart not found for this user");
     return res.status(200).send(cart);
   } catch (error) {
     return next(error);
@@ -30,15 +31,17 @@ router.route("/").get(async (req, res, next) => {
 
 router.route("/").post(requireBody(["userId"]), async (req, res, next) => {
   try {
-    if (req.user.id !== req.body.userId) {
-      console.log(req.user.id, req.body.userId);
+    const userId = Number(req.body.userId);
+    if (req.user.id !== userId) {
+      console.log(req.user.id, userId);
       return res.status(403).send("You can only create a cart for yourself");
     }
-    const existingCart = await getCartByUserId(req.body.userId);
+
+    const existingCart = await getCartByUserId(req.user.id);
     if (existingCart) {
       return res.status(400).send("Cart already exists for this user");
     }
-    const newCart = await createCart(req.body.userId);
+    const newCart = await createCart(req.user.id);
     return res.status(201).send(newCart);
   } catch (error) {
     return next(error);
@@ -50,59 +53,61 @@ router.route("/").post(requireBody(["userId"]), async (req, res, next) => {
 
 router
   .route("/items")
-  .post(
-    requireUser,
-    requireBody(["cartId", "boxType", "boxId", "quantity"]),
-    async (req, res, next) => {
-      try {
-        const cart = await getCartByUserId(req.user.id);
-        if (!cart || cart.id !== req.body.cartId) {
-          return res
-            .status(403)
-            .send("You can only add items to your own cart");
-        }
-        const newCartItem = await addItemToCart(
-          req.body.cartId,
-          req.body.boxType,
-          req.body.boxId,
-          req.body.quantity
-        );
-        return res.status(201).send(newCartItem);
-      } catch (error) {
-        return next(error);
-      }
+  .post(requireBody(["boxType", "boxId"]), async (req, res, next) => {
+    try {
+      const cart = await getCartByUserId(req.user.id);
+      if (!cart) return res.status(404).send("Cart not found for this user");
+
+      if (req.user.id !== cart.user_id)
+        return res.status(403).send("You can only add items to your own cart");
+
+      const boxType = req.body.boxType;
+      if (boxType !== "pre-made" && boxType !== "custom")
+        return res.status(400).send("boxType must be 'premade' or 'cuustom'");
+
+      const boxId = Number(req.body.boxId);
+      if (!Number.isInteger(boxId) || boxId < 1)
+        return res
+          .status(400)
+          .send("boxId must be a positive integer or more than 0");
+
+      const newCartItem = await addItemToCart(
+        cart.cart_id,
+        req.body.boxType,
+        boxId
+      );
+
+      return res.status(201).send(newCartItem);
+    } catch (error) {
+      return next(error);
     }
-  );
+  });
 
 // ------------------PUT /cart/items/:id -> update the quantity of a box
 // ------------------+1 or -1 in sql code-----------------------------
 
 router
   .route("/items/:id")
-  .put(
-    requireUser,
-    requireBody(["cartId", "action"]),
-    async (req, res, next) => {
-      try {
-        const cart = await getCartByUserId(req.user.id);
-        if (!cart || cart.id !== req.body.cartId) {
-          return res
-            .status(403)
-            .send("You can only update items in your own cart");
-        }
-        const updatedCartItem = await updateCartItemQuantity(
-          req.params.id,
-          req.body.action
-        );
-        if (!updatedCartItem) {
-          return res.status(404).send("Cart item not found");
-        }
-        return res.status(200).send(updatedCartItem);
-      } catch (error) {
-        return next(error);
+  .put(requireBody(["cartId", "action"]), async (req, res, next) => {
+    try {
+      const cart = await getCartByUserId(req.user.id);
+      if (!cart || cart.id !== req.body.cartId) {
+        return res
+          .status(403)
+          .send("You can only update items in your own cart");
       }
+      const updatedCartItem = await updateCartItemQuantity(
+        req.params.id,
+        req.body.action
+      );
+      if (!updatedCartItem) {
+        return res.status(404).send("Cart item not found");
+      }
+      return res.status(200).send(updatedCartItem);
+    } catch (error) {
+      return next(error);
     }
-  );
+  });
 
 // ------------------DELETE /cart/items/:id -> Remove a box from the cart-----------------------------
 
