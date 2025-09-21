@@ -164,7 +164,7 @@ export const getCartByUserId = async (userId) => {
 
 // ------------------update cart item quantity +1 or -1 ----------------------
 
-export const updateCartItemQuantity = async (quantity) => {
+export const updateCartItemQuantity = async (quantity, cartItemId) => {
   const sql = `
   UPDATE cart_items
   SET quantity = $1
@@ -173,7 +173,7 @@ export const updateCartItemQuantity = async (quantity) => {
   `;
   const {
     rows: [updatedCartItem],
-  } = await db.query(sql, [quantity]);
+  } = await db.query(sql, [quantity, cartItemId]);
   return updatedCartItem;
 };
 
@@ -187,4 +187,14 @@ export const deleteCartItem = async (cartItemId) => {
     rows: [deletedCartItem],
   } = await db.query(sql, [cartItemId]);
   return deletedCartItem;
+};
+
+export const getCartItemById = async (id) => {
+  const sql = `
+  SELECT * FROM cart_items WHERE id = $1
+  `;
+  const {
+    rows: [cartItem],
+  } = await db.query(sql, [id]);
+  return cartItem;
 };

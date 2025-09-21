@@ -8,6 +8,7 @@ import {
   updateCartItemQuantity,
   deleteCartItem,
   getCartByUserId,
+  getCartItemById,
 } from "#db/queries/cart";
 
 import requireBody from "#middleware/requireBody";
@@ -86,23 +87,46 @@ router
 // ------------------PUT /cart/items/:id -> update the quantity of a box
 // ------------------+1 or -1 in sql code-----------------------------
 
+router.param("id", async (req, res, next, id) => {
+  const cart = await getCartByUserId(req.user.id);
+  if (!cart) return res.status(404).send("Cart not found for this user");
+
+  const cartItemId = Number(id);
+  if (!Number.isInteger(cartItemId) || cartItemId < 1)
+    return res.status(400).send("Invalid cart item ID");
+
+  const cartItem = await getCartItemById(cartItemId);
+  if (!cartItem)
+    return res.status(404).send("Cart item not found for this user");
+
+  console.log(cart.cart_id, cartItem.cart_id);
+  req.cart = cart;
+  req.cartItem = cartItem;
+  next();
+});
+
 router
   .route("/items/:id")
-  .put(requireBody(["cartId", "action"]), async (req, res, next) => {
+  .put(requireBody(["quantity"]), async (req, res, next) => {
     try {
-      const cart = await getCartByUserId(req.user.id);
-      if (!cart || cart.id !== req.body.cartId) {
+      if (req.cart.cart_id !== req.cartItem.cart_id)
         return res
           .status(403)
-          .send("You can only update items in your own cart");
-      }
+          .send("You can only modify items in your own cart");
+
+      const quantity = Number(req.body.quantity);
+      if (!Number.isInteger(quantity) || quantity < 1)
+        return res
+          .status(400)
+          .send("Quantity must be a positive integer or more than 0");
+
       const updatedCartItem = await updateCartItemQuantity(
-        req.params.id,
-        req.body.action
+        quantity,
+        req.cartItem.id
       );
-      if (!updatedCartItem) {
-        return res.status(404).send("Cart item not found");
-      }
+      if (!updatedCartItem)
+        return res.status(404).send("Cart item not found for this user");
+
       return res.status(200).send(updatedCartItem);
     } catch (error) {
       return next(error);
@@ -115,17 +139,15 @@ router
   .route("/items/:id")
   .delete(requireUser, requireBody(["cartId"]), async (req, res, next) => {
     try {
-      const cart = await getCartByUserId(req.user.id);
-      if (!cart || cart.id !== req.body.cartId) {
+      if (!cart || cart.id !== req.body.cartId)
         return res
           .status(403)
           .send("You can only delete items from your own cart");
-      }
+
       const deleted = await deleteCartItem(req.params.id);
-      if (!deleted) {
-        return res.status(404).send("Cart item not found");
-      }
-      return res.status(204).send();
+      if (!deleted) return res.status(404).send("Cart item not found");
+
+      return res.status(204).send(deleted);
     } catch (error) {
       return next(error);
     }
