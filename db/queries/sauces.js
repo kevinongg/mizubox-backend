@@ -20,3 +20,13 @@ export const getAllSauces = async () => {
   console.log(sauces);
   return sauces;
 };
+
+export const getSauceById = async (id) => {
+  const sql = `
+  SELECT * FROM sauces WHERE id = $1
+  `;
+  const {
+    rows: [sauce],
+  } = await db.query(sql, [id]);
+  return sauce;
+};

@@ -19,3 +19,13 @@ export const getAllExtras = async () => {
   const { rows: extras } = await db.query(sql);
   return extras;
 };
+
+export const getExtraById = async (id) => {
+  const sql = `
+  SELECT * FROM extras WHERE id = $1
+  `;
+  const {
+    rows: [extra],
+  } = await db.query(sql, [id]);
+  return extra;
+};

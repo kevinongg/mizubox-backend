@@ -15,8 +15,7 @@ router.route("/").get(async (req, res, next) => {
 
 router.param("id", async (req, res, next, id) => {
   try {
-    const numId = Number(id);
-    const nigiri = await getNigiriById(numId);
+    const nigiri = await getNigiriById(Number(id));
     if (!nigiri) return res.status(404).send("Nigiri not found");
     req.nigiri = nigiri;
     next();
