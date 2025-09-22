@@ -1,69 +1,40 @@
 import db from "#db/client";
 
-export const createOrder = async (userId, totalPrice, status = "placed") => {
+export const createOrder = async (userId, totalPrice, status = 'placed') => {
   const sql = `
-  INSERT INTO orders(user_id, total_price) 
-  VALUES($1, $2) 
+  INSERT INTO orders(user_id, total_price, status) 
+  VALUES($1, $2, $3) 
   RETURNING *
   `;
   const {
     rows: [order],
-  } = await db.query(sql, [userId, totalPrice]);
+  } = await db.query(sql, [userId, totalPrice, status]);
   return order;
 };
 
-export const addOrderItem = async (orderId, boxType, boxId) => {
+export const addOrderItemBox = async (orderId, boxType, boxId, quantity) => {
   if (boxType === "pre-made") {
     const sql = `
-    INSERT INTO order_items(order_id, box_type, pre_made_box_id) 
-    VALUES($1, $2, $3) 
+    INSERT INTO order_items(order_id, box_type, pre_made_box_id, quantity) 
+    VALUES($1, $2, $3, $4) 
     RETURNING *
     `;
     const {
-      rows: [orderItem],
-    } = await db.query(sql, [orderId, boxType, boxId]);
-    return orderItem;
+      rows: [orderItemBox],
+    } = await db.query(sql, [orderId, boxType, boxId, quantity]);
+    return orderItemBox;
   }
 
   if (boxType === "custom") {
     const sql = `
-    INSERT INTO order_items(order_id, box_type, user_custom_box_id) 
-    VALUES($1, $2, $3) 
+    INSERT INTO order_items(order_id, box_type, user_custom_box_id, quantity) 
+    VALUES($1, $2, $3, $4) 
     RETURNING *
     `;
     const {
-      rows: [orderItem],
-    } = await db.query(sql, [orderId, boxType, boxId]);
-    return orderItem;
-  }
-
-  // handle unique constraint violation. if the same box exists, increase quantity + 1
-  if (err.code === "23505") {
-    if (boxType === "pre-made") {
-      const sql = `
-      UPDATE order_items
-      SET quantity = quantity + 1
-      WHERE order_items.order_id = $1 AND order_items.pre_made_box_id = $2
-      RETURNING *
-      `;
-      const {
-        rows: [updatedOrderItem],
-      } = await db.query(sql, [orderId, boxId]);
-      return updatedOrderItem;
-    }
-
-    if (boxType === "custom") {
-      const sql = `
-      UPDATE order_items
-      SET quantity = quantity + 1
-      WHERE order_items.order_id = $1 AND order_items.user_custom_box_id = $2
-      RETURNING *
-      `;
-      const {
-        rows: [updatedOrderItem],
-      } = await db.query(sql, [orderId, boxId]);
-      return updatedOrderItem;
-    }
+      rows: [orderItemBox],
+    } = await db.query(sql, [orderId, boxType, boxId, quantity]);
+    return orderItemBox;
   }
 };
 
@@ -103,16 +74,18 @@ export const addOrderItemExtra = async (orderItemId, extraId, quantity) => {
   return orderItemExtra;
 };
 
-// Get all orders (admin only)
+//------------------------------------- Get all orders (admin only)-------------------------------------
+
 export const getAllOrders = async () => {
   const sql = `
   SELECT * FROM orders ORDER BY created_at DESC
   `;
-  const { rows: orders } = await db.query(sql, [userId]);
+  const { rows: orders } = await db.query(sql);
   return orders;
 };
 
-// Get single order by ID with full details
+// -----------------------------------Get single order by ID with full details------------------------------------
+
 export const getOrderById = async (orderId) => {
   const sql = `
   SELECT 
@@ -197,7 +170,8 @@ export const getOrderById = async (orderId) => {
   return order;
 };
 
-// Get orders by user ID
+// --------------------------------- Get orders by user ID----------------------------------
+
 export const getOrdersByUserId = async (userId) => {
   const sql = `
   SELECT 
@@ -245,17 +219,15 @@ export const getOrdersByUserId = async (userId) => {
   return orders;
 };
 
-// Update order status
+// ---------------------------------------Update order status--------------------------------
+
 export const updateOrderStatus = async (orderId, status) => {
-  //  Need to validate for status in JavaScript
-  const validStatuses = ["placed", "confirmed", "delivered", "cancelled"];
-
+  const validStatuses = ['placed', 'confirmed', 'preparing', 'out-for-delivery', 'delivered', 'cancelled'];
+  
   if (!validStatuses.includes(status)) {
-    throw new Error(
-      `Invalid status. Must be one of: ${validStatuses.join(", ")}`
-    );
+    throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
   }
-
+  
   const sql = `
   UPDATE orders 
   SET status = $1 
@@ -268,7 +240,8 @@ export const updateOrderStatus = async (orderId, status) => {
   return order;
 };
 
-// Cancel order (soft delete by updating status)
+// ---------------------------------------------Cancel order (soft delete by updating status)---------------------------------
+
 export const cancelOrder = async (orderId) => {
   const sql = `
   UPDATE orders 
@@ -282,7 +255,7 @@ export const cancelOrder = async (orderId) => {
   return order;
 };
 
-// Hard delete order (removes from database completely)
+// --------------------------------------------------Hard delete order (removes from database completely)---------------------------------
 export const deleteOrder = async (orderId) => {
   const sql = `
   DELETE FROM orders 
@@ -295,7 +268,8 @@ export const deleteOrder = async (orderId) => {
   return order;
 };
 
-// Clear cart after order is placed
+// ---------------------------------------------------Clear cart after order is placed---------------------------------
+
 export const clearCartItems = async (cartId) => {
   const sql = `
   DELETE FROM cart_items 

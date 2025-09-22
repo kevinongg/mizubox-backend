@@ -25,14 +25,12 @@ import requireBody from "#middleware/requireBody";
 // ----------------GET /orders -> Get all orders (admin only)----------------
 router.route("/").get(requireUser, async (req, res, next) => {
   try {
-    // Check if user is admin
     if (req.user.role !== "admin") {
       // If not admin, return only their orders
       const userOrders = await getOrdersByUserId(req.user.id);
       return res.status(200).send(userOrders);
     }
 
-    // Admin can see all orders
     const orders = await getAllOrders();
     return res.status(200).send(orders);
   } catch (error) {
@@ -48,21 +46,17 @@ router
       const userId = req.user.id;
       const { totalPrice } = req.body;
 
-      // Get user's cart
       const cart = await getCartByUserId(userId);
       if (!cart || !cart.items || cart.items.length === 0) {
         return res.status(400).send("Cart is empty");
       }
 
-      // Create the order
       const order = await createOrder(userId, totalPrice, "placed");
 
-      // Process each cart item
       for (const cartItem of cart.items) {
         const boxDetails = cartItem.box_details?.[0];
         if (!boxDetails) continue;
 
-        // Add box to order
         const orderItem = await addOrderItemBox(
           order.id,
           cartItem.boxType,
@@ -72,9 +66,7 @@ router
           cartItem.quantity
         );
 
-        // If it's a custom box, add the components
         if (cartItem.boxType === "custom") {
-          // Add nigiris
           if (boxDetails.nigiris) {
             for (const nigiri of boxDetails.nigiris) {
               await addOrderItemNigiri(
@@ -109,10 +101,8 @@ router
         }
       }
 
-      // Clear the cart
       await clearCartItems(cart.cart_id);
 
-      // Get the complete order with details
       const completeOrder = await getOrderById(order.id);
 
       return res.status(201).send(completeOrder);
@@ -121,8 +111,8 @@ router
     }
   });
 
+//---------------------------------------------- Middleware to get order and check ownership----------------------------------
 
-// Middleware to get order and check ownership
 router.param("id", async (req, res, next, id) => {
   try {
     const orderId = Number(id);
@@ -132,7 +122,6 @@ router.param("id", async (req, res, next, id) => {
       return res.status(404).send("Order not found");
     }
 
-    // Check if user owns this order or is admin
     if (req.user.id !== order.user_id && req.user.role !== "admin") {
       return res
         .status(403)
@@ -147,7 +136,9 @@ router.param("id", async (req, res, next, id) => {
 });
 
 // ----------------GET /orders/:id -> Get specific order details----------------
-router.route("/:id").get(requireUser, async (req, res, next) => {
+
+router.
+route("/:id").get(requireUser, async (req, res, next) => {
   try {
     return res.status(200).send(req.order);
   } catch (error) {
@@ -162,11 +153,8 @@ router
     try {
       const { status } = req.body;
 
-      // Only admin can update order status
       if (req.user.role !== "admin") {
-        // Users can only cancel their own orders
         if (status === "cancelled" && req.order.user_id === req.user.id) {
-          // Check if order can be cancelled (only if status is 'placed' or 'confirmed')
           if (!["placed", "confirmed"].includes(req.order.status)) {
             return res
               .status(400)
@@ -190,21 +178,20 @@ router
   });
 
 // ----------------DELETE /orders/:id -> Cancel order----------------
-router.route("/:id").delete(requireUser, async (req, res, next) => {
+
+router.
+route("/:id").delete(requireUser, async (req, res, next) => {
   try {
-    // Check if order can be cancelled
     if (!["placed", "confirmed"].includes(req.order.status)) {
       return res.status(400).send("Order cannot be cancelled at this stage");
     }
 
-    // Users can cancel their own orders, admin can cancel any order
     if (req.user.id !== req.order.user_id && req.user.role !== "admin") {
       return res
         .status(403)
         .send("You are not authorized to cancel this order");
     }
 
-    // Cancel the order (soft delete - changes status to 'cancelled')
     const cancelledOrder = await cancelOrder(req.order.order_id);
 
     return res.status(200).send({
@@ -217,16 +204,16 @@ router.route("/:id").delete(requireUser, async (req, res, next) => {
 });
 
 // ----------------DELETE /orders/:id/hard -> Permanently delete order (admin only)----------------
-router.route("/:id/hard").delete(requireUser, async (req, res, next) => {
+
+router.
+route("/:id/hard").delete(requireUser, async (req, res, next) => {
   try {
-    // Only admin can permanently delete orders
     if (req.user.role !== "admin") {
       return res
         .status(403)
         .send("Only administrators can permanently delete orders");
     }
 
-    // Hard delete the order
     const deletedOrder = await deleteOrder(req.order.order_id);
 
     return res.status(200).send({
