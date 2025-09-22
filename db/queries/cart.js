@@ -118,7 +118,7 @@ export const getCartByUserId = async (userId) => {
         user_custom_boxes ON user_custom_boxes.id = cart_items.user_custom_box_id
       WHERE
         cart_items.cart_id = cart.id
-    ) sub
+      ) sub
     ) AS cart_total,
 
     (SELECT json_agg(json_build_object(
@@ -160,8 +160,8 @@ export const getCartByUserId = async (userId) => {
       'box_details',
         CASE
           WHEN cart_items.box_type = 'pre-made' THEN
-            (SELECT json_agg(json_build_object(
-              'pre_made_box_id', pre_made_boxes.id,
+            json_build_object(
+              'box_id', pre_made_boxes.id,
               'name', pre_made_boxes.name,
               'description', pre_made_boxes.description,
               'image_url', pre_made_boxes.image_url,
@@ -184,20 +184,14 @@ export const getCartByUserId = async (userId) => {
                   JOIN
                     nigiris ON nigiris.id = pre_made_box_contents.nigiri_id
                   WHERE
-                    pre_made_box_contents.pre_made_box_id = pre_made_boxes.id
+                    pre_made_box_contents.pre_made_box_id = pre_made_boxes.id                 
                   )
             )
-            ORDER BY pre_made_boxes.id ASC
-            )
-            FROM 
-              pre_made_boxes
-            WHERE 
-              pre_made_boxes.id = cart_items.pre_made_box_id
-          )
+
 
           WHEN cart_items.box_type = 'custom' THEN
-            (SELECT json_agg(json_build_object(
-              'user_custom_box_id', user_custom_boxes.id,
+            json_build_object(
+              'box_id', user_custom_boxes.id,
               'user_id', user_custom_boxes.user_id,
               'nigiris',
                 (SELECT json_agg(json_build_object(
@@ -257,15 +251,8 @@ export const getCartByUserId = async (userId) => {
                   extras ON extras.id = user_custom_box_extras.extra_id
                 WHERE
                   user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
-                )
             )
-            ORDER BY user_custom_boxes.id ASC
-            )
-            FROM
-              user_custom_boxes
-            WHERE
-              user_custom_boxes.id = cart_items.user_custom_box_id
-            )
+          )
           END
     )
     ORDER BY 
@@ -327,4 +314,12 @@ export const getCartItemById = async (id) => {
     rows: [cartItem],
   } = await db.query(sql, [id]);
   return cartItem;
+};
+
+export const deleteAllCartItems = async (cartId) => {
+  const sql = `
+  DELETE FROM cart_items WHERE cart_id = $1 RETURNING*
+  `;
+  const { rows: deletedCart } = await db.query(sql, [cartId]);
+  return deletedCart;
 };
