@@ -2,39 +2,68 @@ import db from "#db/client";
 
 export const createOrder = async (userId, totalPrice, status = "placed") => {
   const sql = `
-  INSERT INTO orders(user_id, total_price, status) 
-  VALUES($1, $2, $3) 
+  INSERT INTO orders(user_id, total_price) 
+  VALUES($1, $2) 
   RETURNING *
   `;
   const {
     rows: [order],
-  } = await db.query(sql, [userId, totalPrice, status]);
+  } = await db.query(sql, [userId, totalPrice]);
   return order;
 };
 
-export const addOrderItemBox = async (orderId, boxType, boxId, quantity) => {
+export const addOrderItem = async (orderId, boxType, boxId) => {
   if (boxType === "pre-made") {
     const sql = `
-    INSERT INTO order_items(order_id, box_type, pre_made_box_id, quantity) 
-    VALUES($1, $2, $3, $4) 
+    INSERT INTO order_items(order_id, box_type, pre_made_box_id) 
+    VALUES($1, $2, $3) 
     RETURNING *
     `;
     const {
-      rows: [orderItemBox],
-    } = await db.query(sql, [orderId, boxType, boxId, quantity]);
-    return orderItemBox;
+      rows: [orderItem],
+    } = await db.query(sql, [orderId, boxType, boxId]);
+    return orderItem;
   }
 
   if (boxType === "custom") {
     const sql = `
-    INSERT INTO order_items(order_id, box_type, user_custom_box_id, quantity) 
-    VALUES($1, $2, $3, $4) 
+    INSERT INTO order_items(order_id, box_type, user_custom_box_id) 
+    VALUES($1, $2, $3) 
     RETURNING *
     `;
     const {
-      rows: [orderItemBox],
-    } = await db.query(sql, [orderId, boxType, boxId, quantity]);
-    return orderItemBox;
+      rows: [orderItem],
+    } = await db.query(sql, [orderId, boxType, boxId]);
+    return orderItem;
+  }
+
+  // handle unique constraint violation. if the same box exists, increase quantity + 1
+  if (err.code === "23505") {
+    if (boxType === "pre-made") {
+      const sql = `
+      UPDATE order_items
+      SET quantity = quantity + 1
+      WHERE order_items.order_id = $1 AND order_items.pre_made_box_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedOrderItem],
+      } = await db.query(sql, [orderId, boxId]);
+      return updatedOrderItem;
+    }
+
+    if (boxType === "custom") {
+      const sql = `
+      UPDATE order_items
+      SET quantity = quantity + 1
+      WHERE order_items.order_id = $1 AND order_items.user_custom_box_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedOrderItem],
+      } = await db.query(sql, [orderId, boxId]);
+      return updatedOrderItem;
+    }
   }
 };
 
@@ -79,7 +108,7 @@ export const getAllOrders = async () => {
   const sql = `
   SELECT * FROM orders ORDER BY created_at DESC
   `;
-  const { rows: orders } = await db.query(sql);
+  const { rows: orders } = await db.query(sql, [userId]);
   return orders;
 };
 

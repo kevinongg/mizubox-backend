@@ -39,6 +39,35 @@ export const addItemToCart = async (cartId, boxType, boxId) => {
     } = await db.query(sql, [cartId, boxType, boxId]);
     return cartItem;
   }
+
+  // handle unique constraint violation. if the same box exists, increase quantity + 1
+  if (err.code === "23505") {
+    if (boxType === "pre-made") {
+      const sql = `
+      UPDATE cart_items
+      SET quantity = quantity + 1
+      WHERE cart_items.cart_id = $1 AND cart_items.pre_made_box_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedCartItem],
+      } = await db.query(sql, [cartId, boxId]);
+      return updatedCartItem;
+    }
+
+    if (boxType === "custom") {
+      const sql = `
+      UPDATE cart_items
+      SET quantity = quantity + 1
+      WHERE cart_items.cart_id = $1 AND cart_items.user_custom_box_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedCartItem],
+      } = await db.query(sql, [cartId, boxId]);
+      return updatedCartItem;
+    }
+  }
 };
 
 // ------------------get cart by user id ----------------------
@@ -48,10 +77,86 @@ export const getCartByUserId = async (userId) => {
   SELECT 
     cart.id AS cart_id,
     cart.user_id,
+    (SELECT COALESCE(SUM(item_total), 0)
+    FROM 
+      (SELECT
+        CASE
+          WHEN cart_items.box_type = 'pre-made' THEN pre_made_boxes.price * cart_items.quantity
+          WHEN cart_items.box_type = 'custom' THEN
+            (
+            (SELECT COALESCE(SUM(nigiris.price * user_custom_box_contents.quantity), 0)
+              FROM
+                user_custom_box_contents
+              JOIN
+                nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
+              WHERE
+                user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
+            ) +
+            (SELECT COALESCE(SUM(sauces.price * user_custom_box_sauces.quantity), 0)
+              FROM
+                user_custom_box_sauces
+              JOIN
+                sauces ON sauces.id = user_custom_box_sauces.sauce_id
+              WHERE
+                user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
+              ) +
+            (SELECT COALESCE(SUM(extras.price * user_custom_box_extras.quantity), 0)
+              FROM
+                user_custom_box_extras
+              JOIN
+                extras ON extras.id = user_custom_box_extras.extra_id
+              WHERE
+                user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
+            )
+          ) * cart_items.quantity
+        END AS item_total
+      FROM
+        cart_items
+      LEFT JOIN
+        pre_made_boxes ON pre_made_boxes.id = cart_items.pre_made_box_id
+      LEFT JOIN
+        user_custom_boxes ON user_custom_boxes.id = cart_items.user_custom_box_id
+      WHERE
+        cart_items.cart_id = cart.id
+    ) sub
+    ) AS cart_total,
+
     (SELECT json_agg(json_build_object(
       'cart_item_id', cart_items.id,
       'boxType', cart_items.box_type,
       'quantity', cart_items.quantity,
+      'cart_item_total',
+        CASE
+          WHEN cart_items.box_type = 'pre-made' THEN pre_made_boxes.price * cart_items.quantity
+          WHEN cart_items.box_type = 'custom' THEN 
+            (
+            (SELECT COALESCE(SUM(nigiris.price * user_custom_box_contents.quantity), 0)
+              FROM
+                user_custom_box_contents
+              JOIN
+                nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
+              WHERE
+                user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
+              ) +
+            (SELECT COALESCE(SUM(sauces.price * user_custom_box_sauces.quantity), 0)
+              FROM
+                user_custom_box_sauces
+              JOIN
+                sauces ON sauces.id = user_custom_box_sauces.sauce_id
+              WHERE
+                user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
+              ) + 
+            (SELECT COALESCE(SUM(extras.price * user_custom_box_extras.quantity), 0)
+              FROM
+                user_custom_box_extras
+              JOIN
+                extras ON extras.id = user_custom_box_extras.extra_id
+              WHERE
+                user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
+              )
+            ) * cart_items.quantity
+          END,
+
       'box_details',
         CASE
           WHEN cart_items.box_type = 'pre-made' THEN
@@ -69,7 +174,6 @@ export const getCartByUserId = async (userId) => {
                   'category', nigiris.category,
                   'description', nigiris.description,
                   'image_url', nigiris.image_url,
-                  'price', nigiris.price,
                   'quantity', pre_made_box_contents.quantity
                   )
                   ORDER BY
@@ -169,6 +273,10 @@ export const getCartByUserId = async (userId) => {
     )
     FROM 
       cart_items
+    LEFT JOIN
+      pre_made_boxes ON pre_made_boxes.id = cart_items.pre_made_box_id
+    LEFT JOIN
+      user_custom_boxes ON user_custom_boxes.id = cart_items.user_custom_box_id
     WHERE 
       cart_items.cart_id = cart.id
     ) 

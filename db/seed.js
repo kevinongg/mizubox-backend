@@ -224,7 +224,7 @@ const seed = async () => {
   //======================================================================================================
 
   //*** Create order ***//
-  const order = await createOrder(users[0].id, 200.0, "placed");
+  const order = await createOrder(users[0].id, 200.0);
   //*** Add box to order ***//
   const orderPreMade = await addOrderItemBox(
     order.id,
