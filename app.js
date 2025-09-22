@@ -13,7 +13,7 @@ import preMadeBoxRoutes from "#api/preMadeBoxes";
 import sauceRoutes from "#api/sauces";
 import extraRoutes from "#api/extras";
 import userCustomBoxRoutes from "#api/UserCustomBoxes";
-import orderRoutes from "#api/order";
+import orderRoutes from "#api/orders";
 import cartRoutes from "#api/cart";
 
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? /localhost/ }));
