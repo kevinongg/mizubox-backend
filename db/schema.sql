@@ -138,7 +138,8 @@ CREATE TABLE cart (
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'active', --(eg.. 'active' || 'checked_out')
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(id, user_id)
 );
 
 /* ========= JUNCTION TABLE (CART & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
@@ -150,7 +151,9 @@ CREATE TABLE cart_items (
   box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
-  quantity INT NOT NULL DEFAULT 1
+  quantity INT NOT NULL DEFAULT 1,
+  UNIQUE(cart_id, pre_made_box_id),
+  UNIQUE(cart_id, user_custom_box_id)
 );
 
 
@@ -162,8 +165,8 @@ CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id),
   total_price DECIMAL(10,2) NOT NULL,
-  status TEXT DEFAULT 'placed', -- (eg.. 'placed', 'confirmed', 'delivered')
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  status TEXT NOT NULL DEFAULT 'placed', -- (eg.. 'placed', 'confirmed', 'delivered')
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 /* ========= JUNCTION TABLE (ORDERS & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
@@ -175,6 +178,8 @@ CREATE TABLE order_items (
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
   quantity INT DEFAULT 1
+  UNIQUE (order_id, pre_made_box_id)
+  UNIQUE (order_id, user_custom_box_id)
 );
 
 -- Table to grab order history information about nigiris in a custom box

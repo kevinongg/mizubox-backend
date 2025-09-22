@@ -39,6 +39,35 @@ export const addItemToCart = async (cartId, boxType, boxId) => {
     } = await db.query(sql, [cartId, boxType, boxId]);
     return cartItem;
   }
+
+  // handle unique constraint violation. if the same box exists, increase quantity + 1
+  if (err.code === "23505") {
+    if (boxType === "pre-made") {
+      const sql = `
+      UPDATE cart_items
+      SET quantity = quantity + 1
+      WHERE cart_items.cart_id = $1 AND cart_items.pre_made_box_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedCartItem],
+      } = await db.query(sql, [cartId, boxId]);
+      return updatedCartItem;
+    }
+
+    if (boxType === "custom") {
+      const sql = `
+      UPDATE cart_items
+      SET quantity = quantity + 1
+      WHERE cart_items.cart_id = $1 AND cart_items.user_custom_box_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedCartItem],
+      } = await db.query(sql, [cartId, boxId]);
+      return updatedCartItem;
+    }
+  }
 };
 
 // ------------------get cart by user id ----------------------

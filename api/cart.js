@@ -80,6 +80,7 @@ router
 
       return res.status(201).send(newCartItem);
     } catch (error) {
+      console.error("Error adding item to cart");
       return next(error);
     }
   });
