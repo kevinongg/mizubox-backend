@@ -294,6 +294,16 @@ export const updateCartItemQuantity = async (quantity, cartItemId) => {
   return updatedCartItem;
 };
 
+// ------------------get cartItem by user id ----------------------
+
+export const getCartItemsByCartId = async (cart_id) => {
+  const sql = `
+  SELECT * FROM cart_items WHERE cart_id = $1
+  `;
+  const { rows: cartItems } = await db.query(sql, [cart_id]);
+  return cartItems;
+};
+
 // ------------------delete cart item by user id ----------------------
 
 export const deleteCartItem = async (cartItemId) => {
