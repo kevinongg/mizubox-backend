@@ -67,45 +67,9 @@ export const addOrderItem = async (orderId, boxType, boxId) => {
   }
 };
 
-export const addOrderItemNigiri = async (orderItemId, nigiriId, quantity) => {
-  const sql = `
-  INSERT INTO order_item_nigiris(order_item_id, nigiri_id, quantity) 
-  VALUES($1, $2, $3) 
-  RETURNING *
-  `;
-  const {
-    rows: [orderItemNigiri],
-  } = await db.query(sql, [orderItemId, nigiriId, quantity]);
-  return orderItemNigiri;
-};
-
-export const addOrderItemSauce = async (orderItemId, sauceId, quantity) => {
-  const sql = `
-  INSERT INTO order_item_sauces(order_item_id, sauce_id, quantity) 
-  VALUES($1, $2, $3) 
-  RETURNING *
-  `;
-  const {
-    rows: [orderItemSauce],
-  } = await db.query(sql, [orderItemId, sauceId, quantity]);
-  return orderItemSauce;
-};
-
-export const addOrderItemExtra = async (orderItemId, extraId, quantity) => {
-  const sql = `
-  INSERT INTO order_item_extras(order_item_id, extra_id, quantity) 
-  VALUES($1, $2, $3) 
-  RETURNING *
-  `;
-  const {
-    rows: [orderItemExtra],
-  } = await db.query(sql, [orderItemId, extraId, quantity]);
-  return orderItemExtra;
-};
-
 export const getOrdersByUserId = async (userId) => {
   const sql = `
-  SELECT * FROM orders WHERE orders.user_id = $1 ORDER BY created_at DESC
+  SELECT * FROM orders WHERE orders.user_id = $1 ORDER BY created_at ASC
   `;
   const { rows: orders } = await db.query(sql, [userId]);
   return orders;
@@ -125,7 +89,7 @@ export const getOrderById = async (orderId) => {
       'order_details',
         CASE
           WHEN order_items.box_type = 'pre-made' THEN
-            (SELECT json_agg(json_build_object(
+            (SELECT json_build_object(
               'pre_made_box_id', pre_made_boxes.id,
               'name', pre_made_boxes.name,
               'description', pre_made_boxes.description,
@@ -141,6 +105,7 @@ export const getOrderById = async (orderId) => {
                   'image_url', nigiris.image_url,
                   'price', nigiris.price,
                   'quantity', pre_made_box_contents.quantity
+                  
                 ))
                 FROM
                   pre_made_box_contents
@@ -149,19 +114,20 @@ export const getOrderById = async (orderId) => {
                 WHERE
                   pre_made_box_contents.pre_made_box_id = pre_made_boxes.id
                 )
-            ))
+            )
             FROM
               pre_made_boxes
             WHERE
               pre_made_boxes.id = order_items.pre_made_box_id
             )
+
           WHEN order_items.box_type = 'custom' THEN
-            (SELECT json_agg(json_build_object(
+            (SELECT json_build_object(
               'user_custom_box_id', user_custom_boxes.id,
               'user_id', user_custom_boxes.user_id,
               'nigiris',
                 (SELECT json_agg(json_build_object(
-                  'user_custom_box_content_id', user_custom_boxes.id,
+                  'user_custom_box_content_id', user_custom_box_contents.id,
                   'nigiri_id', nigiris.id,
                   'name', nigiris.name,
                   'category', nigiris.category,
@@ -209,7 +175,7 @@ export const getOrderById = async (orderId) => {
                 WHERE
                   user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
                 )
-            ))
+            )
             FROM
               user_custom_boxes
             WHERE
@@ -225,10 +191,48 @@ export const getOrderById = async (orderId) => {
   FROM 
     orders 
   WHERE 
-    orders.user_id = $1
+    orders.id = $1
   `;
   const {
     rows: [order],
   } = await db.query(sql, [orderId]);
   return order;
 };
+
+// do not need these helpers
+
+// export const addOrderItemNigiri = async (orderItemId, nigiriId, quantity) => {
+//   const sql = `
+//   INSERT INTO order_item_nigiris(order_item_id, nigiri_id, quantity)
+//   VALUES($1, $2, $3)
+//   RETURNING *
+//   `;
+//   const {
+//     rows: [orderItemNigiri],
+//   } = await db.query(sql, [orderItemId, nigiriId, quantity]);
+//   return orderItemNigiri;
+// };
+
+// export const addOrderItemSauce = async (orderItemId, sauceId, quantity) => {
+//   const sql = `
+//   INSERT INTO order_item_sauces(order_item_id, sauce_id, quantity)
+//   VALUES($1, $2, $3)
+//   RETURNING *
+//   `;
+//   const {
+//     rows: [orderItemSauce],
+//   } = await db.query(sql, [orderItemId, sauceId, quantity]);
+//   return orderItemSauce;
+// };
+
+// export const addOrderItemExtra = async (orderItemId, extraId, quantity) => {
+//   const sql = `
+//   INSERT INTO order_item_extras(order_item_id, extra_id, quantity)
+//   VALUES($1, $2, $3)
+//   RETURNING *
+//   `;
+//   const {
+//     rows: [orderItemExtra],
+//   } = await db.query(sql, [orderItemId, extraId, quantity]);
+//   return orderItemExtra;
+// };

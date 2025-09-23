@@ -17,6 +17,11 @@ router.param("id", async (req, res, next, id) => {
   try {
     const sauce = await getSauceById(Number(id));
     if (!sauce) return res.status(404).send("Sauce not found");
+
+    const sauceId = Number(id);
+    if (!Number.isInteger(sauceId) || sauceId < 1)
+      return res.status(400).send("Invalid sauce ID");
+
     req.sauce = sauce;
     next();
   } catch (error) {

@@ -6,11 +6,11 @@ import { deleteAllCartItems, getCartByUserId } from "#db/queries/cart";
 import {
   addOrderItem,
   createOrder,
+  getOrderById,
   getOrdersByUserId,
 } from "#db/queries/orders";
 
 import requireUser from "#middleware/requireUser";
-import requireBody from "#middleware/requireBody";
 
 router.use(requireUser);
 
@@ -18,7 +18,8 @@ router
   .route("/")
   .get(async (req, res, next) => {
     try {
-      const orders = await getOrdersByUserId(1);
+      const orders = await getOrdersByUserId(req.user.id);
+      if (!orders) return res.status(404).send("Orders not found");
       return res.status(200).send(orders);
     } catch (error) {
       return next(error);
@@ -45,4 +46,20 @@ router.route("/checkout").post(async (req, res) => {
   res.status(201).send("Order successfully placed");
 });
 
-// get /:id
+router.param("id", async (req, res, next, id) => {
+  const order = await getOrderById(Number(id));
+  if (!order) return res.status(404).send("Order not found");
+
+  const orderId = Number(id);
+  if (!Number.isInteger(orderId) || orderId < 1)
+    return res.status(400).send("Invalid order ID");
+
+  req.order = order;
+  next();
+});
+
+router.route("/:id").get(async (req, res) => {
+  if (req.user.id !== req.order.user_id)
+    return res.status(403).send("You are not authorized to view this order");
+  res.status(200).send(req.order);
+});

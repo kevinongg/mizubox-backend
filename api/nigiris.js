@@ -17,6 +17,11 @@ router.param("id", async (req, res, next, id) => {
   try {
     const nigiri = await getNigiriById(Number(id));
     if (!nigiri) return res.status(404).send("Nigiri not found");
+
+    const nigiriId = Number(id);
+    if (!Number.isInteger(nigiriId) || nigiriId < 1)
+      return res.status(400).send("Invalid nigiri ID");
+
     req.nigiri = nigiri;
     next();
   } catch (error) {

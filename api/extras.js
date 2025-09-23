@@ -17,6 +17,11 @@ router.param("id", async (req, res, next, id) => {
   try {
     const extra = await getExtraById(Number(id));
     if (!extra) return res.status(404).send("Extra not found");
+
+    const extraId = Number(id);
+    if (!Number.isInteger(extraId) || extraId < 1)
+      return res.status(400).send("Invalid extra ID");
+
     req.extra = extra;
     next();
   } catch (error) {

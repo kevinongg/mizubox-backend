@@ -177,31 +177,35 @@ CREATE TABLE order_items (
   box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
-  quantity INT DEFAULT 1
-  UNIQUE (order_id, pre_made_box_id)
+  quantity INT DEFAULT 1,
+  UNIQUE (order_id, pre_made_box_id),
   UNIQUE (order_id, user_custom_box_id)
 );
 
+
+-- Do not need these tables, you are already able to grab information about a nigiri, sauce, or extra
+-- inside a custom box.
+
 -- Table to grab order history information about nigiris in a custom box
-CREATE TABLE order_item_nigiris (
-  id SERIAL PRIMARY KEY,
-  order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
-  nigiri_id INT REFERENCES nigiris(id),
-  quantity INT NOT NULL
-);
+-- CREATE TABLE order_item_nigiris (
+--   id SERIAL PRIMARY KEY,
+--   order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
+--   nigiri_id INT REFERENCES nigiris(id),
+--   quantity INT NOT NULL
+-- );
 
 -- Table to grab order history information about sauces in a custom box
-CREATE TABLE order_item_sauces (
-  id SERIAL PRIMARY KEY,
-  order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
-  sauce_id INT REFERENCES sauces(id),
-  quantity INT NOT NULL
-);
+-- CREATE TABLE order_item_sauces (
+--   id SERIAL PRIMARY KEY,
+--   order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
+--   sauce_id INT REFERENCES sauces(id),
+--   quantity INT NOT NULL
+-- );
 
 -- Table to grab order history information about extras in a custom box
-CREATE TABLE order_item_extras (
-  id SERIAL PRIMARY KEY,
-  order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
-  extra_id INT REFERENCES extras(id),
-  quantity INT NOT NULL
-);
+-- CREATE TABLE order_item_extras (
+--   id SERIAL PRIMARY KEY,
+--   order_item_id INT REFERENCES order_items(id) ON DELETE CASCADE,
+--   extra_id INT REFERENCES extras(id),
+--   quantity INT NOT NULL
+-- );
