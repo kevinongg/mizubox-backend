@@ -34,7 +34,6 @@ router.route("/").post(requireBody(["userId"]), async (req, res, next) => {
   try {
     const userId = Number(req.body.userId);
     if (req.user.id !== userId) {
-      console.log(req.user.id, userId);
       return res.status(403).send("You can only create a cart for yourself");
     }
 
@@ -92,13 +91,13 @@ router.param("id", async (req, res, next, id) => {
   const cart = await getCartByUserId(req.user.id);
   if (!cart) return res.status(404).send("Cart not found for this user");
 
-  const cartItemId = Number(id);
-  if (!Number.isInteger(cartItemId) || cartItemId < 1)
-    return res.status(400).send("Invalid cart item ID");
-
   const cartItem = await getCartItemById(cartItemId);
   if (!cartItem)
     return res.status(404).send("Cart item not found for this user");
+
+  const cartItemId = Number(id);
+  if (!Number.isInteger(cartItemId) || cartItemId < 1)
+    return res.status(400).send("Invalid cart item ID");
 
   req.cart = cart;
   req.cartItem = cartItem;

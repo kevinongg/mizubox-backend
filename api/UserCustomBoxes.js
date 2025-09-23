@@ -48,6 +48,11 @@ router.param("id", async (req, res, next, id) => {
     if (!userCustomBox)
       return res.status(404).send("User's custom box not found");
     req.userCustomBox = userCustomBox;
+
+    const customBoxId = Number(id);
+    if (!Number.isInteger(customBoxId) || customBoxId < 1)
+      return res.status(400).send("Invalid custom box ID");
+
     next();
   } catch (error) {
     next(error);

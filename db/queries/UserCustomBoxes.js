@@ -13,40 +13,88 @@ export const createUserCustomBox = async (userId) => {
 };
 
 export const addNigiriToUserCustomBox = async (userCustomBoxId, nigiriId) => {
-  const sql = `
-  INSERT INTO user_custom_box_contents(user_custom_box_id, nigiri_id) 
-  VALUES($1, $2) 
-  RETURNING *
-  `;
+  try {
+    const sql = `
+    INSERT INTO user_custom_box_contents(user_custom_box_id, nigiri_id) 
+    VALUES($1, $2) 
+    RETURNING *
+    `;
 
-  const {
-    rows: [nigiriToCustomBox],
-  } = await db.query(sql, [userCustomBoxId, nigiriId]);
-  return nigiriToCustomBox;
+    const {
+      rows: [nigiriToCustomBox],
+    } = await db.query(sql, [userCustomBoxId, nigiriId]);
+    return nigiriToCustomBox;
+  } catch (err) {
+    // handle unique constraint violation, update nigiri quantity +1 if exists
+    if (err.code === "23505") {
+      const sql = `
+      UPDATE user_custom_box_contents
+      SET quantity = quantity + 1
+      WHERE user_custom_box_contents.user_custom_box_id = $1 AND user_custom_box_contents.nigiri_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedNigiriQuantity],
+      } = await db.query(sql, [userCustomBoxId, nigiriId]);
+      return updatedNigiriQuantity;
+    }
+  }
 };
 
 export const addSauceToUserCustomBox = async (userCustomBoxId, sauceId) => {
-  const sql = `
-  INSERT INTO user_custom_box_sauces(user_custom_box_id, sauce_id) 
-  VALUES($1, $2) 
-  RETURNING *
-  `;
-  const {
-    rows: [sauceToCustomBox],
-  } = await db.query(sql, [userCustomBoxId, sauceId]);
-  return sauceToCustomBox;
+  try {
+    const sql = `
+    INSERT INTO user_custom_box_sauces(user_custom_box_id, sauce_id) 
+    VALUES($1, $2) 
+    RETURNING *
+    `;
+    const {
+      rows: [sauceToCustomBox],
+    } = await db.query(sql, [userCustomBoxId, sauceId]);
+    return sauceToCustomBox;
+  } catch (err) {
+    // handle unique constraint violation, update sauce quantity +1 if exists
+    if (err.code === "23505") {
+      const sql = `
+      UPDATE user_custom_box_sauces
+      SET quantity = quantity + 1
+      WHERE user_custom_box_sauces.user_custom_box_id = $1 AND user_custom_box_sauces.sauce_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedSauceQuantity],
+      } = await db.query(sql, [userCustomBoxId, sauceId]);
+      return updatedSauceQuantity;
+    }
+  }
 };
 
 export const addExtraToUserCustomBox = async (userCustomBoxId, extraId) => {
-  const sql = `
-  INSERT INTO user_custom_box_extras(user_custom_box_id, extra_id) 
-  VALUES($1, $2) 
-  RETURNING *
-  `;
-  const {
-    rows: [extraToCustomBox],
-  } = await db.query(sql, [userCustomBoxId, extraId]);
-  return extraToCustomBox;
+  try {
+    const sql = `
+    INSERT INTO user_custom_box_extras(user_custom_box_id, extra_id) 
+    VALUES($1, $2) 
+    RETURNING *
+    `;
+    const {
+      rows: [extraToCustomBox],
+    } = await db.query(sql, [userCustomBoxId, extraId]);
+    return extraToCustomBox;
+  } catch (err) {
+    // handle unique constraint violation, update extra quantity +1 if exists
+    if (err.code === "23505") {
+      const sql = `
+      UPDATE user_custom_box_extras
+      SET quantity = quantity + 1
+      WHERE user_custom_box_extras.user_custom_box_id = $1 AND user_custom_box_extras.extra_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updatedExtraQuantity],
+      } = await db.query(sql, [userCustomBoxId, extraId]);
+      return updatedExtraQuantity;
+    }
+  }
 };
 
 export const getAllCustomBoxesByUserId = async (userId) => {

@@ -16,56 +16,58 @@ export const createCart = async (userId) => {
 // ------------------add item to cart ----------------------
 
 export const addItemToCart = async (cartId, boxType, boxId) => {
-  if (boxType === "pre-made") {
-    const sql = `
-  INSERT INTO cart_items(cart_id, box_type, pre_made_box_id)
-  VALUES($1, $2, $3)
-  RETURNING *
-  `;
-    const {
-      rows: [cartItem],
-    } = await db.query(sql, [cartId, boxType, boxId]);
-    return cartItem;
-  }
-
-  if (boxType === "custom") {
-    const sql = `
-    INSERT INTO cart_items(cart_id, box_type, user_custom_box_id) 
-    VALUES($1, $2, $3) 
-    RETURNING *
-    `;
-    const {
-      rows: [cartItem],
-    } = await db.query(sql, [cartId, boxType, boxId]);
-    return cartItem;
-  }
-
-  // handle unique constraint violation. if the same box exists, increase quantity + 1
-  if (err.code === "23505") {
+  try {
     if (boxType === "pre-made") {
       const sql = `
-      UPDATE cart_items
-      SET quantity = quantity + 1
-      WHERE cart_items.cart_id = $1 AND cart_items.pre_made_box_id = $2
-      RETURNING *
-      `;
+    INSERT INTO cart_items(cart_id, box_type, pre_made_box_id)
+    VALUES($1, $2, $3)
+    RETURNING *
+    `;
       const {
-        rows: [updatedCartItem],
-      } = await db.query(sql, [cartId, boxId]);
-      return updatedCartItem;
+        rows: [cartItem],
+      } = await db.query(sql, [cartId, boxType, boxId]);
+      return cartItem;
     }
 
     if (boxType === "custom") {
       const sql = `
-      UPDATE cart_items
-      SET quantity = quantity + 1
-      WHERE cart_items.cart_id = $1 AND cart_items.user_custom_box_id = $2
+      INSERT INTO cart_items(cart_id, box_type, user_custom_box_id) 
+      VALUES($1, $2, $3) 
       RETURNING *
       `;
       const {
-        rows: [updatedCartItem],
-      } = await db.query(sql, [cartId, boxId]);
-      return updatedCartItem;
+        rows: [cartItem],
+      } = await db.query(sql, [cartId, boxType, boxId]);
+      return cartItem;
+    }
+  } catch (err) {
+    // handle unique constraint violation. if the same box exists, increase quantity + 1
+    if (err.code === "23505") {
+      if (boxType === "pre-made") {
+        const sql = `
+        UPDATE cart_items
+        SET quantity = quantity + 1
+        WHERE cart_items.cart_id = $1 AND cart_items.pre_made_box_id = $2
+        RETURNING *
+        `;
+        const {
+          rows: [updatedCartItem],
+        } = await db.query(sql, [cartId, boxId]);
+        return updatedCartItem;
+      }
+
+      if (boxType === "custom") {
+        const sql = `
+        UPDATE cart_items
+        SET quantity = quantity + 1
+        WHERE cart_items.cart_id = $1 AND cart_items.user_custom_box_id = $2
+        RETURNING *
+        `;
+        const {
+          rows: [updatedCartItem],
+        } = await db.query(sql, [cartId, boxId]);
+        return updatedCartItem;
+      }
     }
   }
 };
@@ -125,7 +127,7 @@ export const getCartByUserId = async (userId) => {
       'cart_item_id', cart_items.id,
       'boxType', cart_items.box_type,
       'quantity', cart_items.quantity,
-      'cart_item_total',
+      'box_total',
         CASE
           WHEN cart_items.box_type = 'pre-made' THEN pre_made_boxes.price * cart_items.quantity
           WHEN cart_items.box_type = 'custom' THEN 
