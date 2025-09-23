@@ -31,8 +31,7 @@ const seed = async () => {
     const user = await createUser(
       faker.person.fullName(),
       faker.internet.exampleEmail(),
-      "password",
-      "user"
+      "password"
     );
     users.push(user);
   }

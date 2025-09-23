@@ -25,44 +25,77 @@ router
       return next(error);
     }
   })
+  // not sure if i need this or not
   .post(async (req, res) => {});
 
 router.route("/checkout").post(async (req, res) => {
   // get users cart
-  const cart = await getCartByUserId(req.user.id);
-  if (!cart || !cart.items || cart.items.length === 0)
-    return res.status(400).send("Cart is empty");
+  try {
+    const cart = await getCartByUserId(req.user.id);
+    if (req.user.id !== cart.user_id)
+      return res
+        .status(403)
+        .send("You are not authorized to checkout this cart");
+    if (!cart || !cart.items || cart.items.length === 0)
+      return res.status(400).send("Cart is empty");
 
-  // create order
-  const order = await createOrder(req.user.id, cart.cart_total);
+    // enforce 14 nigiri rule, use reduce method
+    for (const item of cart.items) {
+      if (item.boxType === "custom") {
+        const totalNigiriQuantity = item.box_details.nigiris.reduce(
+          (sum, nigiri) => {
+            return sum + nigiri.quantity;
+          },
+          0
+        );
+        if (totalNigiriQuantity < 14)
+          return res
+            .status(400)
+            .send("Custom Box must have a minimum of 14 nigiris");
+      }
+    }
 
-  // add each cart item into order_items(cart.items)
-  for (const item of cart.items) {
-    await addOrderItem(order.id, item.boxType, item.box_details.box_id);
+    // create order
+    const order = await createOrder(req.user.id, cart.cart_total);
+
+    // add each cart item into order_items(cart.items)
+    for (const item of cart.items) {
+      await addOrderItem(order.id, item.boxType, item.box_details.box_id);
+    }
+    // clear cart
+    await deleteAllCartItems(cart.cart_id);
+
+    res.status(201).send("Order successfully placed");
+  } catch (error) {
+    console.error("Error checking out");
   }
-  // clear cart
-  await deleteAllCartItems(cart.cart_id);
-
-  res.status(201).send("Order successfully placed");
 });
 
 router.param("id", async (req, res, next, id) => {
-  const order = await getOrderById(Number(id));
-  if (!order) return res.status(404).send("Order not found");
+  try {
+    const order = await getOrderById(Number(id));
+    if (!order) return res.status(404).send("Order not found");
 
-  const orderId = Number(id);
-  if (!Number.isInteger(orderId) || orderId < 1)
-    return res.status(400).send("Invalid order ID");
+    const orderId = Number(id);
+    if (!Number.isInteger(orderId) || orderId < 1)
+      return res.status(400).send("Invalid order ID");
 
-  req.order = order;
-  next();
+    req.order = order;
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.route("/:id").get(async (req, res) => {
-  if (req.user.id !== req.order.user_id)
-    return res.status(403).send("You are not authorized to view this order");
-  res.status(200).send(req.order);
-
+  try {
+    if (req.user.id !== req.order.user_id)
+      return res.status(403).send("You are not authorized to view this order");
+    res.status(200).send(req.order);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // ----------------GET /orders -> Get all orders (admin only)----------------
 // router.route("/").get(requireUser, async (req, res, next) => {

@@ -14,15 +14,12 @@ import requireUser from "../middleware/requireUser.js";
 // ----------------users register-------------
 router
   .route("/register")
-  .post(
-    requireBody(["name", "email", "password", "role"]),
-    async (req, res) => {
-      const { name, email, password, role } = req.body;
-      const user = await createUser(name, email, password, role);
-      const token = createToken({ id: user.id });
-      return res.status(201).send(token);
-    }
-  );
+  .post(requireBody(["name", "email", "password"]), async (req, res) => {
+    const { name, email, password } = req.body;
+    const user = await createUser(name, email, password);
+    const token = createToken({ id: user.id });
+    return res.status(201).send(token);
+  });
 
 // ----------------users login-------------
 router
