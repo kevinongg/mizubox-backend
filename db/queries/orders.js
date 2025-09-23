@@ -199,6 +199,57 @@ export const getOrderById = async (orderId) => {
   return order;
 };
 
+// ---------------------------------------Update order status--------------------------------
+
+// export const updateOrderStatus = async (orderId, status) => {
+//   const validStatuses = ['placed', 'confirmed', 'preparing', 'out-for-delivery', 'delivered', 'cancelled'];
+  
+//   if (!validStatuses.includes(status)) {
+//     throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+//   }
+  
+//   const sql = `
+//   UPDATE orders 
+//   SET status = $1 
+//   WHERE id = $2 
+//   RETURNING *
+//   `;
+//   const {
+//     rows: [order],
+//   } = await db.query(sql, [status, orderId]);
+//   return order;
+// };
+
+// ---------------------------------------------Cancel order (soft delete by updating status)---------------------------------
+
+// export const cancelOrder = async (orderId) => {
+//   const sql = `
+//   UPDATE orders 
+//   SET status = 'cancelled' 
+//   WHERE id = $1 
+//   RETURNING *
+//   `;
+//   const {
+//     rows: [order],
+//   } = await db.query(sql, [orderId]);
+//   return order;
+// };
+
+// --------------------------------------------------Hard delete order (removes from database completely)---------------------------------
+// export const deleteOrder = async (orderId) => {
+//   const sql = `
+//   DELETE FROM orders 
+//   WHERE id = $1 
+//   RETURNING *
+// >>>>>>> main
+//   `;
+//   const {
+//     rows: [order],
+//   } = await db.query(sql, [orderId]);
+//   return order;
+// };
+
+
 // do not need these helpers
 
 // export const addOrderItemNigiri = async (orderItemId, nigiriId, quantity) => {
@@ -236,3 +287,14 @@ export const getOrderById = async (orderId) => {
 //   } = await db.query(sql, [orderItemId, extraId, quantity]);
 //   return orderItemExtra;
 // };
+
+// ---------------------------------------------------Clear cart after order is placed---------------------------------
+
+// export const clearCartItems = async (cartId) => {
+//   const sql = `
+//   DELETE FROM cart_items 
+//   WHERE cart_id = $1
+//   `;
+//   await db.query(sql, [cartId]);
+// };
+
