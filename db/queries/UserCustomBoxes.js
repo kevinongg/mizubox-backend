@@ -19,7 +19,6 @@ export const addNigiriToUserCustomBox = async (userCustomBoxId, nigiriId) => {
     VALUES($1, $2) 
     RETURNING *
     `;
-
     const {
       rows: [nigiriToCustomBox],
     } = await db.query(sql, [userCustomBoxId, nigiriId]);

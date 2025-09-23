@@ -122,8 +122,8 @@ export const getCartByUserId = async (userId) => {
         cart_items.cart_id = cart.id
       ) sub
     ) AS cart_total,
-
-    (SELECT json_agg(json_build_object(
+    
+    (SELECT COALESCE(json_agg(json_build_object(
       'cart_item_id', cart_items.id,
       'boxType', cart_items.box_type,
       'quantity', cart_items.quantity,
@@ -162,14 +162,14 @@ export const getCartByUserId = async (userId) => {
       'box_details',
         CASE
           WHEN cart_items.box_type = 'pre-made' THEN
-            json_build_object(
+            (SELECT json_build_object(
               'box_id', pre_made_boxes.id,
               'name', pre_made_boxes.name,
               'description', pre_made_boxes.description,
               'image_url', pre_made_boxes.image_url,
               'price', pre_made_boxes.price,
               'nigiris', 
-                (SELECT json_agg(json_build_object(
+                (SELECT COALESCE(json_agg(json_build_object(
                   'pre_made_box_content_id', pre_made_box_contents.id,
                   'nigiri_id', nigiris.id,
                   'name', nigiris.name,
@@ -180,6 +180,7 @@ export const getCartByUserId = async (userId) => {
                   )
                   ORDER BY
                     pre_made_box_contents.id ASC
+                  ), '[]'
                   )
                   FROM
                     pre_made_box_contents
@@ -189,14 +190,15 @@ export const getCartByUserId = async (userId) => {
                     pre_made_box_contents.pre_made_box_id = pre_made_boxes.id                 
                   )
             )
+            )
 
 
           WHEN cart_items.box_type = 'custom' THEN
-            json_build_object(
+            (SELECT json_build_object(
               'box_id', user_custom_boxes.id,
               'user_id', user_custom_boxes.user_id,
               'nigiris',
-                (SELECT json_agg(json_build_object(
+                (SELECT COALESCE(json_agg(json_build_object(
                   'user_custom_box_content_id', user_custom_box_contents.id,
                   'nigiri_id', nigiris.id,
                   'name', nigiris.name,
@@ -208,6 +210,7 @@ export const getCartByUserId = async (userId) => {
                 )
                 ORDER BY
                   user_custom_box_contents.id ASC
+                ), '[]'
                 )
                 FROM
                   user_custom_box_contents
@@ -217,7 +220,7 @@ export const getCartByUserId = async (userId) => {
                   user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
                 ),
               'sauces',
-                (SELECT json_agg(json_build_object(
+                (SELECT COALESCE(json_agg(json_build_object(
                   'user_custom_box_sauce_id', user_custom_box_sauces.id,
                   'sauce_id', sauces.id,
                   'name', sauces.name,
@@ -227,6 +230,7 @@ export const getCartByUserId = async (userId) => {
                 )
                 ORDER BY
                   user_custom_box_sauces.id ASC
+                ), '[]'
                 )
                 FROM
                   user_custom_box_sauces
@@ -236,7 +240,7 @@ export const getCartByUserId = async (userId) => {
                   user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
                 ),
               'extras',
-                (SELECT json_agg(json_build_object(
+                (SELECT COALESCE(json_agg(json_build_object(
                 'user_custom_box_extra_id', user_custom_box_extras.id,
                 'extra_id', extras.id,
                 'name', extras.name,
@@ -246,6 +250,7 @@ export const getCartByUserId = async (userId) => {
                 )
                 ORDER BY
                   user_custom_box_extras.id ASC
+                ), '[]'
                 )
                 FROM
                   user_custom_box_extras
@@ -255,10 +260,12 @@ export const getCartByUserId = async (userId) => {
                   user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
             )
           )
+          )
           END
     )
     ORDER BY 
       cart_items.id ASC
+    ), '[]'
     )
     FROM 
       cart_items

@@ -203,15 +203,15 @@ export const getOrderById = async (orderId) => {
 
 // export const updateOrderStatus = async (orderId, status) => {
 //   const validStatuses = ['placed', 'confirmed', 'preparing', 'out-for-delivery', 'delivered', 'cancelled'];
-  
+
 //   if (!validStatuses.includes(status)) {
 //     throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
 //   }
-  
+
 //   const sql = `
-//   UPDATE orders 
-//   SET status = $1 
-//   WHERE id = $2 
+//   UPDATE orders
+//   SET status = $1
+//   WHERE id = $2
 //   RETURNING *
 //   `;
 //   const {
@@ -224,9 +224,9 @@ export const getOrderById = async (orderId) => {
 
 // export const cancelOrder = async (orderId) => {
 //   const sql = `
-//   UPDATE orders 
-//   SET status = 'cancelled' 
-//   WHERE id = $1 
+//   UPDATE orders
+//   SET status = 'cancelled'
+//   WHERE id = $1
 //   RETURNING *
 //   `;
 //   const {
@@ -238,8 +238,8 @@ export const getOrderById = async (orderId) => {
 // --------------------------------------------------Hard delete order (removes from database completely)---------------------------------
 // export const deleteOrder = async (orderId) => {
 //   const sql = `
-//   DELETE FROM orders 
-//   WHERE id = $1 
+//   DELETE FROM orders
+//   WHERE id = $1
 //   RETURNING *
 // >>>>>>> main
 //   `;
@@ -248,7 +248,6 @@ export const getOrderById = async (orderId) => {
 //   } = await db.query(sql, [orderId]);
 //   return order;
 // };
-
 
 // do not need these helpers
 
@@ -292,9 +291,8 @@ export const getOrderById = async (orderId) => {
 
 // export const clearCartItems = async (cartId) => {
 //   const sql = `
-//   DELETE FROM cart_items 
+//   DELETE FROM cart_items
 //   WHERE cart_id = $1
 //   `;
 //   await db.query(sql, [cartId]);
 // };
-
