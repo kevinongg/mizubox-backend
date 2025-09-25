@@ -342,3 +342,13 @@ export const deleteAllCartItems = async (cartId) => {
   const { rows: deletedCart } = await db.query(sql, [cartId]);
   return deletedCart;
 };
+
+export const clearAllCartItemsByUserId = async (userId) => {
+  const sql = `
+  DELETE 
+  FROM cart_items 
+  WHERE cart_id = (SELECT id FROM cart WHERE user_id = $1) RETURNING id
+  `;
+  const { rows: clearedCart } = await db.query(sql, [userId]);
+  return clearedCart;
+};
