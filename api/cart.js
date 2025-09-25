@@ -9,6 +9,7 @@ import {
   deleteCartItem,
   getCartByUserId,
   getCartItemById,
+  clearAllCartItemsByUserId,
 } from "#db/queries/cart";
 
 import requireBody from "#middleware/requireBody";
@@ -82,6 +83,18 @@ router
       console.error("Error adding item to cart");
       return next(error);
     }
+  })
+  .delete(async (req, res) => {
+    const cart = await getCartByUserId(req.user.id);
+    if (!cart) return res.status(404).send("Cart not found for this user");
+
+    if (req.user.id !== cart.user_id)
+      return res
+        .status(403)
+        .send("You can only add delete items in your own cart");
+
+    const clearedCart = await clearAllCartItemsByUserId(req.user.id);
+    return res.status(204).send(clearedCart);
   });
 
 // ------------------PUT /cart/items/:id -> update the quantity of a box
