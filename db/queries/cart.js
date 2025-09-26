@@ -226,7 +226,8 @@ export const getCartByUserId = async (userId) => {
                   'name', sauces.name,
                   'description', sauces.description,
                   'image_url', sauces.image_url,
-                  'price', sauces.price
+                  'price', sauces.price,
+                  'quantity', user_custom_box_sauces.quantity
                 )
                 ORDER BY
                   user_custom_box_sauces.id ASC
@@ -246,7 +247,8 @@ export const getCartByUserId = async (userId) => {
                 'name', extras.name,
                 'description', extras.description,
                 'image_url', extras.image_url,
-                'price', extras.price
+                'price', extras.price,
+                'quantity', user_custom_box_extras.quantity
                 )
                 ORDER BY
                   user_custom_box_extras.id ASC
