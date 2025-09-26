@@ -10,6 +10,7 @@ import {
   getCartByUserId,
   getCartItemById,
   clearAllCartItemsByUserId,
+  getCartItemsByUserId,
 } from "#db/queries/cart";
 
 import requireBody from "#middleware/requireBody";
@@ -54,13 +55,28 @@ router.route("/").post(requireBody(["userId"]), async (req, res, next) => {
 
 router
   .route("/items")
+  .get(async (req, res) => {
+    const cartItems = await getCartItemsByUserId(req.user.id);
+    if (!cartItems)
+      return res.status(404).send("Cart items not found for this user");
+    console.log(cartItems);
+    res.status(200).send(cartItems);
+  })
   .post(requireBody(["boxType", "boxId"]), async (req, res, next) => {
     try {
       const cart = await getCartByUserId(req.user.id);
       if (!cart) return res.status(404).send("Cart not found for this user");
 
+      const cartItems = await getCartItemsByUserId(req.user.id);
+      if (!cartItems)
+        return res.status(404).send("Cart items not found for this user");
+
       if (req.user.id !== cart.user_id)
         return res.status(403).send("You can only add items to your own cart");
+      if (req.user.id !== cartItems.user_id)
+        return res
+          .status(400)
+          .send("You can only add boxes that you created yourself");
 
       const boxType = req.body.boxType;
       if (boxType !== "pre-made" && boxType !== "custom")

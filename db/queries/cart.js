@@ -347,8 +347,21 @@ export const clearAllCartItemsByUserId = async (userId) => {
   const sql = `
   DELETE 
   FROM cart_items 
-  WHERE cart_id = (SELECT id FROM cart WHERE user_id = $1) RETURNING id
+  WHERE cart_id = (SELECT id FROM cart WHERE user_id = $1) 
+  RETURNING id
   `;
   const { rows: clearedCart } = await db.query(sql, [userId]);
   return clearedCart;
+};
+
+export const getCartItemsByUserId = async (userId) => {
+  const sql = `
+  SELECT * 
+  FROM cart_items
+  JOIN cart ON cart.id = cart_items.cart_id
+  WHERE cart.user_id = $1
+
+  `;
+  const { rows: cartItem } = await db.query(sql, [userId]);
+  return cartItem;
 };
