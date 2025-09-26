@@ -73,14 +73,15 @@ router
 
       if (req.user.id !== cart.user_id)
         return res.status(403).send("You can only add items to your own cart");
-      if (req.user.id !== cartItems.user_id)
-        return res
-          .status(400)
-          .send("You can only add boxes that you created yourself");
+
+      // if (req.user.id !== item.user_id)
+      //   return res
+      //     .status(400)
+      //     .send("You can only add boxes that you created yourself");
 
       const boxType = req.body.boxType;
       if (boxType !== "pre-made" && boxType !== "custom")
-        return res.status(400).send("boxType must be 'premade' or 'cuustom'");
+        return res.status(400).send("boxType must be 'premade' or 'custom'");
 
       const boxId = Number(req.body.boxId);
       if (!Number.isInteger(boxId) || boxId < 1)

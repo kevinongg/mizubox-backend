@@ -364,6 +364,6 @@ export const getCartItemsByUserId = async (userId) => {
   WHERE cart.user_id = $1
 
   `;
-  const { rows: cartItem } = await db.query(sql, [userId]);
-  return cartItem;
+  const { rows: cartItems } = await db.query(sql, [userId]);
+  return cartItems;
 };
