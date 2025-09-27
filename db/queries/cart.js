@@ -358,10 +358,10 @@ export const clearAllCartItemsByUserId = async (userId) => {
 
 export const getCartItemsByUserId = async (userId) => {
   const sql = `
-  SELECT * 
+  SELECT cart_items.*
   FROM cart_items
   JOIN cart ON cart.id = cart_items.cart_id
-  WHERE cart.user_id = $1
+  WHERE cart.user_id = $1 AND cart.status = 'active'
 
   `;
   const { rows: cartItems } = await db.query(sql, [userId]);
