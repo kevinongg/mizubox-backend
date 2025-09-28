@@ -13,8 +13,16 @@ import {
   addSauceToUserCustomBox,
   createUserCustomBox,
 } from "./queries/UserCustomBoxes.js";
-import { addItemToCart, createCart } from "./queries/cart.js";
 import {
+  addExtraToCart,
+  addItemToCart,
+  addSauceToCart,
+  createCart,
+} from "./queries/cart.js";
+import {
+  addOrderItem,
+  addOrderItemExtra,
+  addOrderItemSauce,
   // addOrderItem,
   // addOrderItemExtra,
   // addOrderItemNigiri,
@@ -219,23 +227,30 @@ const seed = async () => {
   //*** add item to cart
   await addItemToCart(cart.id, "pre-made", preMade.id, 1);
   await addItemToCart(cart.id, "custom", customBox.id, 1);
+  //*** add sauce to cart
+  await addSauceToCart(cart.id, sauces[0].id);
+  await addSauceToCart(cart.id, sauces[1].id);
+  //*** add extra to cart
+  await addExtraToCart(cart.id, extras[0].id);
+  await addExtraToCart(cart.id, extras[1].id);
 
   //======================================================================================================
 
   //*** Create order ***//
   const order = await createOrder(users[0].id, 200.0);
-  //*** Add box to order ***//
-  // const orderPreMade = await addOrderItem(order.id, "pre-made", preMade.id, 1);
-  // const orderCustom = await addOrderItem(order.id, "custom", customBox.id, 1);
+  //*** Add item to order ***//
+  await addOrderItem(order.id, "pre-made", preMade.id, 1);
+  await addOrderItem(order.id, "custom", customBox.id, 1);
+  // //*** Add sauces to order ***//
+  await addOrderItemSauce(order.id, sauces[0].id, 2);
+  await addOrderItemSauce(order.id, sauces[1].id, 1);
+  // //*** Add extras to order ***//
+  await addOrderItemExtra(order.id, extras[0].id, 1);
+  await addOrderItemExtra(order.id, extras[1].id, 2);
+
   //*** Add nigiris to order referencing custom box ***//
   // await addOrderItemNigiri(orderPreMade.id, nigiris[0].id, 7);
   // await addOrderItemNigiri(orderCustom.id, nigiris[1].id, 7);
-  // //*** Add sauces to order referencing custom box ***//
-  // await addOrderItemSauce(orderPreMade.id, sauces[0].id, 2);
-  // await addOrderItemSauce(orderCustom.id, sauces[1].id, 1);
-  // //*** Add extras to order referencing custom box ***//
-  // await addOrderItemExtra(orderPreMade.id, extras[0].id, 1);
-  // await addOrderItemExtra(orderCustom.id, extras[1].id, 2);
 };
 
 await db.connect();

@@ -6,7 +6,7 @@ import { deleteAllCartItems, getCartByUserId } from "#db/queries/cart";
 import {
   addOrderItem,
   createOrder,
-  getOrderById,
+  getOrderByIdForUser,
   getOrdersByUserId,
 } from "#db/queries/orders";
 
@@ -28,7 +28,7 @@ router
   // not sure if i need this or not
   .post(async (req, res) => {});
 
-router.route("/checkout").post(async (req, res) => {
+router.route("/checkout").post(async (req, res, next) => {
   // get users cart
   try {
     const cart = await getCartByUserId(req.user.id);
@@ -67,23 +67,24 @@ router.route("/checkout").post(async (req, res) => {
 
     res.status(201).send("Order successfully placed");
   } catch (error) {
-    console.error("Error checking out");
+    return next(error);
   }
 });
 
 router.param("id", async (req, res, next, id) => {
   try {
-    const order = await getOrderById(Number(id));
-    if (!order) return res.status(404).send("Order not found");
-
     const orderId = Number(id);
     if (!Number.isInteger(orderId) || orderId < 1)
       return res.status(400).send("Invalid order ID");
+    console.log(orderId);
+    console.log(req.user.id);
+    const order = await getOrderByIdForUser(orderId, req.user.id);
+    if (!order) return res.status(404).send("Order not found");
 
     req.order = order;
     next();
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -93,7 +94,7 @@ router.route("/:id").get(async (req, res) => {
       return res.status(403).send("You are not authorized to view this order");
     res.status(200).send(req.order);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 

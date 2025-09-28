@@ -121,7 +121,24 @@ export const getCartByUserId = async (userId) => {
       WHERE
         cart_items.cart_id = cart.id
       ) sub
-    ) AS cart_total,
+    ) + 
+    (SELECT COALESCE(SUM(sauces.price * cart_item_sauces.quantity), 0)
+      FROM
+        cart_item_sauces
+      JOIN
+        sauces ON sauces.id = cart_item_sauces.sauce_id
+      WHERE
+        cart_item_sauces.cart_id = cart.id
+      ) +
+    (SELECT COALESCE(SUM(extras.price * cart_item_extras.quantity), 0)
+      FROM
+        cart_item_extras
+      JOIN
+        extras ON extras.id = cart_item_extras.extra_id
+      WHERE
+        cart_item_extras.cart_id = cart.id
+      )
+        AS cart_total,
     
     (SELECT COALESCE(json_agg(json_build_object(
       'cart_item_id', cart_items.id,
@@ -189,9 +206,8 @@ export const getCartByUserId = async (userId) => {
                   WHERE
                     pre_made_box_contents.pre_made_box_id = pre_made_boxes.id                 
                   )
-            )
-            )
-
+            ))
+            
 
           WHEN cart_items.box_type = 'custom' THEN
             (SELECT json_build_object(
@@ -260,9 +276,8 @@ export const getCartByUserId = async (userId) => {
                   extras ON extras.id = user_custom_box_extras.extra_id
                 WHERE
                   user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
-            )
-          )
-          )
+                )
+          ))
           END
     )
     ORDER BY 
@@ -278,7 +293,80 @@ export const getCartByUserId = async (userId) => {
     WHERE 
       cart_items.cart_id = cart.id
     ) 
-      AS items
+      AS boxes,
+
+
+    (SELECT COALESCE(json_agg(json_build_object(
+      'cart_item_sauce_id', cart_item_sauces.id,
+      'quantity', cart_item_sauces.quantity,
+      'sauce_total',
+        (SELECT 
+          sauces.price
+        FROM
+          sauces
+        WHERE
+          sauces.id = cart_item_sauces.sauce_id
+        ) * cart_item_sauces.quantity,
+      'sauce',
+        (SELECT json_build_object(
+        'sauce_id', sauces.id,
+        'name', sauces.name,
+        'description', sauces.description,
+        'image_url', sauces.image_url,
+        'price', sauces.price
+        )
+        FROM
+          sauces
+        WHERE
+          sauces.id = cart_item_sauces.sauce_id
+        )
+    )      
+    ORDER BY
+      cart_item_sauces.id ASC    
+    ), '[]'
+    )
+    FROM
+      cart_item_sauces
+    WHERE
+      cart_item_sauces.cart_id = cart.id
+    ) AS sauces,
+
+    (SELECT COALESCE(json_agg(json_build_object(
+      'cart_item_extra_id', cart_item_extras.id,
+      'quantity', cart_item_extras.quantity,
+      'extra_total',
+        (SELECT 
+          extras.price
+        FROM
+          extras
+        WHERE
+          extras.id = cart_item_extras.extra_id
+        ) * cart_item_extras.quantity,
+      'extra',
+        (SELECT json_build_object(
+        'extra_id', extras.id,
+        'name', extras.name,
+        'description', extras.description,
+        'image_url', extras.image_url,
+        'price', extras.price
+        )
+        FROM
+          extras
+        WHERE
+          extras.id = cart_item_extras.extra_id
+        )
+    )
+    ORDER BY
+      cart_item_extras.id ASC    
+    ), '[]'
+    )
+    FROM
+      cart_item_extras
+    WHERE
+      cart_item_extras.cart_id = cart.id
+    ) AS extras
+
+
   FROM 
     cart 
   WHERE 
@@ -366,4 +454,113 @@ export const getCartItemsByUserId = async (userId) => {
   `;
   const { rows: cartItems } = await db.query(sql, [userId]);
   return cartItems;
+};
+
+export const addSauceToCart = async (cartId, sauceId) => {
+  try {
+    const sql = `
+    INSERT INTO cart_item_sauces(cart_id, sauce_id) 
+    VALUES($1, $2) 
+    RETURNING *
+    `;
+    const {
+      rows: [addSauceToCart],
+    } = await db.query(sql, [cartId, sauceId]);
+    return addSauceToCart;
+  } catch (err) {
+    if (err.code === "23505") {
+      const sql = `
+      UPDATE cart_item_sauces
+      SET quantity = quantity + 1
+      WHERE cart_item_sauces.cart_id = $1 AND cart_item_sauces.sauce_id = $2
+      RETURNING *
+      `;
+      const {
+        rows: [updateSauceCartQuantity],
+      } = await db.query(sql, [cartId, sauceId]);
+      return updateSauceCartQuantity;
+    }
+  }
+};
+
+export const updateCartItemSauceQuantity = async (
+  quantity,
+  cartItemSauceId
+) => {
+  const sql = `
+  UPDATE cart_item_sauces
+  SET quantity = $1
+  WHERE id = $2
+  RETURNING *
+  `;
+  const {
+    rows: [updatedCartItemSauceQuantity],
+  } = await db.query(sql, [quantity, cartItemSauceId]);
+  return updatedCartItemSauceQuantity;
+};
+
+export const deleteCartItemSauceFromCart = async (cartItemSauceId) => {
+  const sql = `
+  DELETE FROM cart_item_sauces 
+  WHERE id = $1 
+  RETURNING *
+  `;
+  const {
+    rows: [deletedCartItemSauce],
+  } = await db.query(sql, [cartItemSauceId]);
+  return deletedCartItemSauce;
+};
+
+export const addExtraToCart = async (cartId, extraId) => {
+  try {
+    const sql = `
+    INSERT INTO cart_item_extras(cart_id, extra_id) 
+    VALUES($1, $2) 
+    RETURNING *
+    `;
+    const {
+      rows: [addExtraToCart],
+    } = await db.query(sql, [cartId, extraId]);
+    return addExtraToCart;
+  } catch (err) {
+    if (err.code === "23505") {
+      const sql = `
+      UPDATE cart_item_extras
+      SET quantity = quantity + 1
+      WHERE cart_item_extras.cart_id = $1 AND cart_item_extras.extra_id = $2
+      `;
+      const {
+        rows: [updateExtraCartQuantity],
+      } = await db.query(sql, [cartId, extraId]);
+      return updateExtraCartQuantity;
+    }
+  }
+};
+
+export const updateCartItemExtraQuantity = async (
+  quantity,
+  cartItemExtraId
+) => {
+  const sql = `
+  UPDATE cart_item_extras
+  SET quantity = $1
+  WHERE id = $2
+  RETURNING *
+  `;
+  const {
+    rows: [updatedCartItemExtraQuantity],
+  } = await db.query(sql, [quantity, cartItemExtraId]);
+  return updatedCartItemExtraQuantity;
+};
+
+export const deleteCartItemExtraFromCart = async (cartItemExtraId) => {
+  const sql = `
+  DELETE FROM cart_item_extras 
+  WHERE id = $1 
+  RETURNING *
+  `;
+  const {
+    rows: [deletedCartItemExtra],
+  } = await db.query(sql, [cartItemExtraId]);
+  return deletedCartItemExtra;
 };

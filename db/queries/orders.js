@@ -69,24 +69,89 @@ export const addOrderItem = async (orderId, boxType, boxId) => {
 
 export const getOrdersByUserId = async (userId) => {
   const sql = `
-  SELECT * FROM orders WHERE orders.user_id = $1 ORDER BY created_at ASC
+  SELECT 
+    orders.id AS order_id, 
+    orders.status, 
+    orders.total_price, 
+    orders.created_at,
+
+    (
+      SELECT COALESCE(COUNT(*), 0)
+      FROM order_items
+      WHERE order_items.order_id = orders.id
+    ) AS box_count,
+
+    (
+      SELECT COALESCE(COUNT(*), 0)
+      FROM order_item_sauces
+      WHERE order_item_sauces.order_id = orders.id
+    ) AS sauce_count,
+
+    (
+      SELECT COALESCE(COUNT(*), 0)
+      FROM order_item_extras
+      WHERE order_item_extras.order_id = orders.id
+    ) AS extra_count
+
+  FROM orders
+  WHERE orders.user_id = $1
+  ORDER BY created_at DESC
   `;
   const { rows: orders } = await db.query(sql, [userId]);
   return orders;
 };
 
-export const getOrderById = async (orderId) => {
+export const getOrderByIdForUser = async (userId, orderId) => {
   const sql = `
   SELECT 
     orders.id AS order_id,
     orders.user_id,
+    orders.status,
     orders.total_price,
     orders.created_at,
-    (SELECT json_agg(json_build_object(
+    (SELECT COALESCE(json_agg(json_build_object(
       'order_item_id', order_items.id,
       'boxType', order_items.box_type,
       'quantity', order_items.quantity,
-      'order_details',
+      'box_total',
+        CASE
+          WHEN order_items.box_type = 'pre-made' THEN 
+            (SELECT 
+              pre_made_boxes.price
+            FROM 
+              pre_made_boxes
+            WHERE
+              pre_made_boxes.id = order_items.pre_made_box_id
+            ) * order_items.quantity
+
+          WHEN order_items.box_type = 'custom' THEN
+            (SELECT COALESCE(SUM(nigiris.price * user_custom_box_contents.quantity), 0)
+            FROM
+              user_custom_box_contents
+            JOIN
+              nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
+            WHERE
+              user_custom_box_contents.user_custom_box_id = order_items.user_custom_box_id
+            ) +
+            (SELECT COALESCE(SUM(sauces.price * user_custom_box_sauces.quantity), 0)
+            FROM
+              user_custom_box_sauces
+            JOIN
+              sauces ON sauces.id = user_custom_box_sauces.sauce_id
+            WHERE
+              user_custom_box_sauces.user_custom_box_id = order_items.user_custom_box_id
+            ) +
+            (SELECT COALESCE(SUM(extras.price * user_custom_box_extras.quantity), 0)
+            FROM
+              user_custom_box_extras
+            JOIN 
+              extras ON extras.id = user_custom_box_extras.extra_id
+            WHERE 
+              user_custom_box_extras.user_custom_box_id = order_items.user_custom_box_id
+            ) * order_items.quantity
+            END,
+
+      'box_details',
         CASE
           WHEN order_items.box_type = 'pre-made' THEN
             (SELECT json_build_object(
@@ -96,7 +161,7 @@ export const getOrderById = async (orderId) => {
               'image_url', pre_made_boxes.image_url,
               'price', pre_made_boxes.price,
               'nigiris', 
-                (SELECT json_agg(json_build_object(
+                (SELECT COALESCE(json_agg(json_build_object(
                   'pre_made_box_content_id', pre_made_box_contents.id,
                   'nigiri_id', nigiris.id,
                   'name', nigiris.name,
@@ -106,7 +171,11 @@ export const getOrderById = async (orderId) => {
                   'price', nigiris.price,
                   'quantity', pre_made_box_contents.quantity
                   
-                ))
+                )
+                ORDER BY
+                  pre_made_box_contents.id ASC
+                ), '[]'
+                )
                 FROM
                   pre_made_box_contents
                 JOIN
@@ -126,7 +195,7 @@ export const getOrderById = async (orderId) => {
               'user_custom_box_id', user_custom_boxes.id,
               'user_id', user_custom_boxes.user_id,
               'nigiris',
-                (SELECT json_agg(json_build_object(
+                (SELECT COALESCE(json_agg(json_build_object(
                   'user_custom_box_content_id', user_custom_box_contents.id,
                   'nigiri_id', nigiris.id,
                   'name', nigiris.name,
@@ -135,7 +204,11 @@ export const getOrderById = async (orderId) => {
                   'image_url', nigiris.image_url,
                   'price', nigiris.price,
                   'quantity', user_custom_box_contents.quantity
-                ))
+                )
+                ORDER BY
+                  user_custom_box_contents.id ASC
+                ), '[]'
+                )
                 FROM
                   user_custom_box_contents
                 JOIN
@@ -143,15 +216,20 @@ export const getOrderById = async (orderId) => {
                 WHERE
                   user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
                 ),
+
               'sauces',
-                (SELECT json_agg(json_build_object(
+                (SELECT COALESCE(json_agg(json_build_object(
                   'user_custom_box_sauce_id', user_custom_box_sauces.id,
                   'sauce_id', sauces.id,
                   'name', sauces.name,
                   'description', sauces.description,
                   'image_url', sauces.image_url,
                   'price', sauces.price
-                ))
+                )
+                ORDER BY
+                  user_custom_box_sauces.id ASC
+                ), '[]'
+                )
                 FROM
                   user_custom_box_sauces
                 JOIN
@@ -159,15 +237,20 @@ export const getOrderById = async (orderId) => {
                 WHERE
                   user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
                 ),
+
               'extras',
-                (SELECT json_agg(json_build_object(
+                (SELECT COALESCE(json_agg(json_build_object(
                 'user_custom_box_extra_id', user_custom_box_extras.id,
                 'extra_id', extras.id,
                 'name', extras.name,
                 'description', extras.description,
                 'image_url', extras.image_url,
                 'price', extras.price
-                ))
+                )
+                ORDER BY
+                  user_custom_box_extras.id ASC
+                ), '[]'
+                )
                 FROM
                   user_custom_box_extras
                 JOIN
@@ -182,21 +265,148 @@ export const getOrderById = async (orderId) => {
               user_custom_boxes.id = order_items.user_custom_box_id
             )
           END
-    ))
+    )), '[]'
+    )
     FROM
       order_items
+    JOIN 
+      orders ON orders.id = order_items.order_id
     WHERE
       order_items.order_id = orders.id
-  ) AS items
+  ) AS items,
+
+  (SELECT COALESCE(json_agg(json_build_object(
+    'order_item_sauce_id', order_item_sauces.id,
+    'quantity', order_item_sauces.quantity,
+    'sauce_total',
+      (SELECT 
+        sauces.price
+      FROM
+        sauces
+      WHERE
+        sauces.id = order_item_sauces.sauce_id
+      ) * order_item_sauces.quantity,
+    'sauce',
+      (SELECT json_build_object(
+        'sauce_id', sauces.id,
+        'name', sauces.name,
+        'description', sauces.description,
+        'image_url', sauces.image_url,
+        'price', sauces.price
+      )
+      FROM
+        sauces
+      WHERE
+        sauces.id = order_item_sauces.sauce_id
+      )
+  )
+  ORDER BY
+    order_item_sauces.id ASC        
+  ), '[]'
+  )
+  FROM
+    order_item_sauces
+  WHERE
+    order_item_sauces.order_id = orders.id
+  ) AS sauces,
+
+  (SELECT COALESCE(json_agg(json_build_object(
+    'order_extra_item_id', order_item_extras.id,
+    'quantity', order_item_extras.quantity,
+    'extra_total',
+      (SELECT 
+        extras.price
+      FROM
+        extras
+      WHERE
+        extras.id = order_item_extras.extra_id
+      ) * order_item_extras.quantity,
+    'extra',
+      (SELECT json_build_object(
+        'extra_id', extras.id,
+        'name', extras.name,
+        'description', extras.description,
+        'image_url', extras.image_url,
+        'price', extras.price
+      )
+      FROM
+        extras
+      WHERE
+        extras.id = order_item_extras.extra_id
+      )
+  )
+  ORDER BY
+    order_item_extras.id ASC    
+  ), '[]'
+  )
+  FROM
+    order_item_extras
+  WHERE
+    order_item_extras.order_id = orders.id
+  ) AS extras
+  
+
   FROM 
     orders 
   WHERE 
-    orders.id = $1
+    orders.id = $1 AND orders.user_id = $2
   `;
   const {
     rows: [order],
-  } = await db.query(sql, [orderId]);
+  } = await db.query(sql, [userId, orderId]);
   return order;
+};
+
+export const addOrderItemSauce = async (orderId, sauceId) => {
+  try {
+    const sql = `
+    INSERT INTO order_item_sauces(order_id, sauce_id) 
+    VALUES($1, $2) 
+    RETURNING *
+    `;
+    const {
+      rows: [addSauceToOrder],
+    } = await db.query(sql, [orderId, sauceId]);
+    return addSauceToOrder;
+  } catch (err) {
+    if (err.code === "23505") {
+      const sql = `
+      UPDATE order_item_sauces
+      SET quantity = quantity + 1
+      WHERE order_item_sauces.order_id = $1 AND order_item_sauces.sauce_id = $2
+      `;
+      const {
+        rows: [updateOrderItemSauceQuantity],
+      } = await db.query(sql, [orderId, sauceId]);
+      return updateOrderItemSauceQuantity;
+    }
+  }
+};
+
+export const addOrderItemExtra = async (orderId, extraId) => {
+  try {
+    const sql = `
+    INSERT INTO order_item_extras(order_id, extra_id) 
+    VALUES($1, $2) 
+    RETURNING *
+    `;
+    const {
+      rows: [addExtraToOrder],
+    } = await db.query(sql, [orderId, extraId]);
+    return addExtraToOrder;
+  } catch (err) {
+    if (err.code === "23505") {
+      const sql = `
+      UPDATE order_item_extras
+      SET quantity = quantity + 1
+      WHERE order_item_extras.order_id = $1 AND order_item_extras.extra_id = $2
+      `;
+      const {
+        rows: [updateOrderItemExtraQuantity],
+      } = await db.query(sql, [orderId, extraId]);
+      return updateOrderItemExtraQuantity;
+    }
+  }
 };
 
 // ---------------------------------------Update order status--------------------------------
