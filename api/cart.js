@@ -14,6 +14,9 @@ import {
   addSauceToCart,
   updateCartItemSauceQuantity,
   deleteCartItemSauceFromCart,
+  addExtraToCart,
+  updateCartItemExtraQuantity,
+  deleteCartItemExtraFromCart,
 } from "#db/queries/cart";
 
 import requireBody from "#middleware/requireBody";
@@ -145,7 +148,28 @@ router
 
 // -----------------------------POST /cart/extras ->add an extra to the cart---------------------------
 
-router.route("/extras").post((req, res, next) => {});
+router
+  .route("/extras")
+  .post(requireBody(["extraId"]), async (req, res, next) => {
+    try {
+      const cart = await getCartByUserId(req.user.id);
+      if (!cart) return res.status(404).send("Cart not found for this user");
+
+      if (req.user.id !== cart.user_id)
+        return res.status(403).send("You can only add items to your own cart");
+
+      const extraId = Number(req.body.extraId);
+      if (!Number.isInteger(extraId) || extraId < 1)
+        return res
+          .status(400)
+          .send("boxId must be a positive integer or more than 0");
+
+      const addExtra = await addExtraToCart(cart.cart_id, extraId);
+      return res.status(201).send(addExtra);
+    } catch (error) {
+      return next(error);
+    }
+  });
 
 // ------------------PUT /cart/items/:id -> update the quantity of a box
 // ------------------+1 or -1 in sql code-----------------------------
@@ -176,20 +200,40 @@ router.param("id", async (req, res, next, id) => {
   }
 });
 
-router.param("sauceId", async (req, res, next, SauceId) => {
+router.param("sauceId", async (req, res, next, sauceId) => {
   try {
     const cart = await getCartByUserId(req.user.id);
     if (!cart) return res.status(404).send("Cart not found for this user");
 
-    const cartItemSauceId = Number(SauceId);
+    if (cart.user_id !== req.user.id)
+      return res.status(403).send("You can only modify items in your own cart");
+
+    const cartItemSauceId = Number(sauceId);
     if (!Number.isInteger(cartItemSauceId) || cartItemSauceId < 1)
       return res.status(400).send("Invalid cart item sauce ID");
+
+    req.cart = cart;
+    req.cartItemSauceId = cartItemSauceId;
+    next();
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.param("extraId", async (req, res, next, extraId) => {
+  try {
+    const cart = await getCartByUserId(req.user.id);
+    if (!cart) return res.status(404).send("Cart not found for this user");
 
     if (cart.user_id !== req.user.id)
       return res.status(403).send("You can only modify items in your own cart");
 
+    const cartItemExtraId = Number(extraId);
+    if (!Number.isInteger(cartItemExtraId) || cartItemExtraId < 1)
+      return res.status(400).send("Invalid cart item sauce ID");
+
     req.cart = cart;
-    req.cartItemSauceId = cartItemSauceId;
+    req.cartItemExtraId = cartItemExtraId;
     next();
   } catch (error) {
     return next(error);
@@ -252,10 +296,49 @@ router
     }
   })
   .delete(async (req, res, next) => {
-    const deletedCartItemSauce = await deleteCartItemSauceFromCart(
-      req.cartItemSauceId
-    );
-    if (!deletedCartItemSauce) return res.status(404).send("Sauce not found");
+    try {
+      const deletedCartItemSauce = await deleteCartItemSauceFromCart(
+        req.cartItemSauceId
+      );
+      if (!deletedCartItemSauce) return res.status(404).send("Sauce not found");
 
-    return res.status(204).send(deletedCartItemSauce);
+      return res.status(204).send(deletedCartItemSauce);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+router
+  .route("/extras/:extraId")
+  .put(requireBody(["quantity"]), async (req, res, next) => {
+    try {
+      const quantity = Number(req.body.quantity);
+      if (!Number.isInteger(quantity) || quantity < 1)
+        return res
+          .status(400)
+          .send("Quantity must be a positive integer or more than 0");
+
+      const updatedCartItemExtra = await updateCartItemExtraQuantity(
+        quantity,
+        req.cartItemExtraId
+      );
+      if (!updatedCartItemExtra)
+        return res.status(404).send("Sauce not found in this cart");
+
+      return res.status(200).send(updatedCartItemExtra);
+    } catch (error) {
+      return next(error);
+    }
+  })
+  .delete(async (req, res, next) => {
+    try {
+      const deletedCartItemExtra = await deleteCartItemExtraFromCart(
+        req.cartItemExtraId
+      );
+      if (!deletedCartItemExtra) return res.status(404).send("Sauce not found");
+
+      return res.status(204).send(deletedCartItemExtra);
+    } catch (error) {
+      return next(error);
+    }
   });

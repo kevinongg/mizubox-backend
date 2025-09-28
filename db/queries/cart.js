@@ -528,6 +528,7 @@ export const addExtraToCart = async (cartId, extraId) => {
       UPDATE cart_item_extras
       SET quantity = quantity + 1
       WHERE cart_item_extras.cart_id = $1 AND cart_item_extras.extra_id = $2
+      RETURNING *
       `;
       const {
         rows: [updateExtraCartQuantity],
