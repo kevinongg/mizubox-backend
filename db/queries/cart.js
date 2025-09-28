@@ -293,7 +293,7 @@ export const getCartByUserId = async (userId) => {
     WHERE 
       cart_items.cart_id = cart.id
     ) 
-      AS boxes,
+      AS items,
 
 
     (SELECT COALESCE(json_agg(json_build_object(
