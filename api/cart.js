@@ -21,8 +21,9 @@ import {
 
 import requireBody from "#middleware/requireBody";
 import requireUser from "#middleware/requireUser";
+import attachCart from "#middleware/attachCart";
 
-router.use(requireUser);
+router.use(requireUser, attachCart);
 
 // ------------------GET /cart -> return logged in user's cart
 

@@ -140,7 +140,7 @@ CREATE TABLE cart (
   user_id INT REFERENCES users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'active', --(eg.. 'active' || 'checked_out')
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(id, user_id)
+  UNIQUE(user_id)
 );
 
 /* ========= JUNCTION TABLE (CART & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */

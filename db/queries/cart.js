@@ -565,3 +565,35 @@ export const deleteCartItemExtraFromCart = async (cartItemExtraId) => {
   } = await db.query(sql, [cartItemExtraId]);
   return deletedCartItemExtra;
 };
+
+export const getOrCreateCartByUserId = async (userId) => {
+  // Try finding existing cart
+  const getSql = `
+  SELECT * FROM cart
+  WHERE user_id = $1 
+  LIMIT 1
+  `;
+  const { rows: getCart } = await db.query(getSql, [userId]);
+  if (getCart.length) {
+    return getCart[0];
+  }
+
+  try {
+    const sql = `
+    INSERT INTO cart(user_id)
+    VALUES($1)
+    RETURNING *
+    `;
+    const {
+      rows: [createCart],
+    } = await db.query(sql, [userId]);
+    return createCart;
+  } catch (err) {
+    if (err.code === "23505") {
+      const { rows: getCartAfterViolation } = await db.query(getSql, [userId]);
+      if (getCartAfterViolation.length) {
+        return getCartAfterViolation[0];
+      }
+    }
+  }
+};
