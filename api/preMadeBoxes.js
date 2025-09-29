@@ -18,12 +18,12 @@ router.route("/").get(async (req, res) => {
 
 router.param("id", async (req, res, next, id) => {
   try {
-    const preMadeBox = await getPreMadeBoxById(numId);
-    if (!preMadeBox) return res.status(404).send("Pre-Made-Box not found");
-
     const preMadeBoxId = Number(id);
     if (!Number.isInteger(preMadeBoxId) || preMadeBoxId < 1)
       return res.status(400).send("Invalid pre-made box ID");
+
+    const preMadeBox = await getPreMadeBoxById(preMadeBoxId);
+    if (!preMadeBox) return res.status(404).send("Pre-Made-Box not found");
 
     req.preMadeBox = preMadeBox;
     next();

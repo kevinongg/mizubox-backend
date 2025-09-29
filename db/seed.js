@@ -207,18 +207,18 @@ const seed = async () => {
   //*** Create custom box ***//
   const customBox = await createUserCustomBox(users[0].id);
   //*** Assign nigiri to created custom box ***//
-  await addNigiriToUserCustomBox(customBox.id, nigiris[0].id, 4);
-  await addNigiriToUserCustomBox(customBox.id, nigiris[1].id, 4);
-  await addNigiriToUserCustomBox(customBox.id, nigiris[2].id, 4);
-  await addNigiriToUserCustomBox(customBox.id, nigiris[3].id, 2);
+  await addNigiriToUserCustomBox(customBox.id, nigiris[0].id);
+  await addNigiriToUserCustomBox(customBox.id, nigiris[1].id);
+  await addNigiriToUserCustomBox(customBox.id, nigiris[2].id);
+  await addNigiriToUserCustomBox(customBox.id, nigiris[3].id);
   //*** Assign sauce to created custom box ***//
-  await addSauceToUserCustomBox(customBox.id, sauces[0].id, 2);
-  await addSauceToUserCustomBox(customBox.id, sauces[1].id, 1);
-  await addSauceToUserCustomBox(customBox.id, sauces[2].id, 3);
+  await addSauceToUserCustomBox(customBox.id, sauces[0].id);
+  await addSauceToUserCustomBox(customBox.id, sauces[1].id);
+  await addSauceToUserCustomBox(customBox.id, sauces[2].id);
   //*** Assign extra to created custom box ***//
-  await addExtraToUserCustomBox(customBox.id, extras[0].id, 3);
-  await addExtraToUserCustomBox(customBox.id, extras[1].id, 2);
-  await addExtraToUserCustomBox(customBox.id, extras[2].id, 1);
+  await addExtraToUserCustomBox(customBox.id, extras[0].id);
+  await addExtraToUserCustomBox(customBox.id, extras[1].id);
+  await addExtraToUserCustomBox(customBox.id, extras[2].id);
 
   //======================================================================================================
 

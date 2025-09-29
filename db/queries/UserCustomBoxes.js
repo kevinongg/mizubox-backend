@@ -37,6 +37,7 @@ export const addNigiriToUserCustomBox = async (userCustomBoxId, nigiriId) => {
       } = await db.query(sql, [userCustomBoxId, nigiriId]);
       return updatedNigiriQuantity;
     }
+    throw err;
   }
 };
 
@@ -65,6 +66,7 @@ export const addSauceToUserCustomBox = async (userCustomBoxId, sauceId) => {
       } = await db.query(sql, [userCustomBoxId, sauceId]);
       return updatedSauceQuantity;
     }
+    throw err;
   }
 };
 
@@ -93,6 +95,7 @@ export const addExtraToUserCustomBox = async (userCustomBoxId, extraId) => {
       } = await db.query(sql, [userCustomBoxId, extraId]);
       return updatedExtraQuantity;
     }
+    throw err;
   }
 };
 
@@ -109,7 +112,7 @@ export const getUserCustomBoxById = async (id) => {
   SELECT 
     user_custom_boxes.id AS user_custom_box_id,
     user_id,
-    (SELECT json_agg(json_build_object(
+    (SELECT COALESCE(json_agg(json_build_object(
       'user_custom_box_content_id', user_custom_box_contents.id,
       'nigiri_id', nigiris.id,
       'name', nigiris.name,
@@ -117,7 +120,11 @@ export const getUserCustomBoxById = async (id) => {
       'image_url', nigiris.image_url,
       'price', nigiris.price,
       'quantity', user_custom_box_contents.quantity
-      )) 
+      )
+      ORDER BY
+        user_custom_box_contents.id ASC
+      ), '[]' 
+      )
       FROM 
         user_custom_box_contents
       JOIN
@@ -126,7 +133,7 @@ export const getUserCustomBoxById = async (id) => {
         user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
       ) AS contents,
 
-    (SELECT json_agg(json_build_object(
+    (SELECT COALESCE(json_agg(json_build_object(
       'user_custom_box_sauce_id', user_custom_box_sauces.id,
       'sauce_id', sauces.id,
       'name', sauces.name,
@@ -134,7 +141,11 @@ export const getUserCustomBoxById = async (id) => {
       'image_url', sauces.image_url,
       'price', sauces.price,
       'quantity', user_custom_box_sauces.quantity
-      ))
+      )
+      ORDER BY
+        user_custom_box_sauces.id ASC
+      ), '[]'
+      )
       FROM
         user_custom_box_sauces
       JOIN
@@ -143,7 +154,7 @@ export const getUserCustomBoxById = async (id) => {
         user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
       ) AS sauces,
     
-    (SELECT json_agg(json_build_object(
+    (SELECT COALESCE(json_agg(json_build_object(
       'user_custom_box_extra_id', user_custom_box_extras.id,
       'extra_id', user_custom_box_extras.extra_id,
       'name', extras.name,
@@ -151,7 +162,11 @@ export const getUserCustomBoxById = async (id) => {
       'image_url', extras.image_url,
       'price', extras.price,
       'quantity', user_custom_box_extras.quantity
-      ))
+      )
+      ORDER BY
+        user_custom_box_extras.id ASC
+      ), '[]'
+      )
       FROM
         user_custom_box_extras
       JOIN

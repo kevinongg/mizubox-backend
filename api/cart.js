@@ -9,7 +9,6 @@ import {
   deleteCartItem,
   getCartByUserId,
   getCartItemById,
-  clearAllCartItemsByUserId,
   getCartItemsByUserId,
   addSauceToCart,
   updateCartItemSauceQuantity,
@@ -17,6 +16,9 @@ import {
   addExtraToCart,
   updateCartItemExtraQuantity,
   deleteCartItemExtraFromCart,
+  deleteAllCartItems,
+  deleteAllCartItemSauces,
+  deleteAllCartItemExtras,
 } from "#db/queries/cart";
 
 import requireBody from "#middleware/requireBody";
@@ -27,35 +29,62 @@ router.use(requireUser, attachCart);
 
 // ------------------GET /cart -> return logged in user's cart
 
-router.route("/").get(async (req, res, next) => {
-  try {
-    const cart = await getCartByUserId(req.user.id);
-    if (!cart) return res.status(404).send("Cart not found for this user");
-    return res.status(200).send(cart);
-  } catch (error) {
-    return next(error);
-  }
-});
+router
+  .route("/")
+  .get(async (req, res, next) => {
+    try {
+      const cart = await getCartByUserId(req.user.id);
+      if (!cart) return res.status(404).send("Cart not found for this user");
+
+      if (req.user.id !== cart.user_id)
+        return res
+          .status(403)
+          .send("You can only retrieve data from your own cart");
+
+      return res.status(200).send(cart);
+    } catch (error) {
+      return next(error);
+    }
+  })
+  .delete(async (req, res, next) => {
+    try {
+      if (req.user.id !== req.cart.user_id)
+        return res
+          .status(403)
+          .send("You can only delete items from your own cart");
+
+      await deleteAllCartItems(req.cart.id);
+      await deleteAllCartItemSauces(req.cart.id);
+      await deleteAllCartItemExtras(req.cart.id);
+
+      const freshCart = await getCartByUserId(req.user.id);
+
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
 
 // ------------------POST /cart -> create new cart row if none exists for user--------------
 
-router.route("/").post(requireBody(["userId"]), async (req, res, next) => {
-  try {
-    const userId = Number(req.body.userId);
-    if (req.user.id !== userId) {
-      return res.status(403).send("You can only create a cart for yourself");
-    }
+// DO NOT NEED
+// router.route("/").post(requireBody(["userId"]), async (req, res, next) => {
+//   try {
+//     const userId = Number(req.body.userId);
+//     if (req.user.id !== userId) {
+//       return res.status(403).send("You can only create a cart for yourself");
+//     }
 
-    const existingCart = await getCartByUserId(req.user.id);
-    if (existingCart) {
-      return res.status(400).send("Cart already exists for this user");
-    }
-    const newCart = await createCart(req.user.id);
-    return res.status(201).send(newCart);
-  } catch (error) {
-    return next(error);
-  }
-});
+//     const existingCart = await getCartByUserId(req.user.id);
+//     if (existingCart) {
+//       return res.status(400).send("Cart already exists for this user");
+//     }
+//     const newCart = await createCart(req.user.id);
+//     return res.status(201).send(newCart);
+//   } catch (error) {
+//     return next(error);
+//   }
+// });
 
 // -----------------------------POST /cart/items ->add a box to the cart---------------------------
 // ----------------------------request body {box_type, pre_made_box_id, user_custom_box_id, quantity}
@@ -66,7 +95,6 @@ router
     const cartItems = await getCartItemsByUserId(req.user.id);
     if (!cartItems)
       return res.status(404).send("Cart items not found for this user");
-    console.log(cartItems);
     res.status(200).send(cartItems);
   })
   .post(requireBody(["boxType", "boxId"]), async (req, res, next) => {
@@ -74,17 +102,12 @@ router
       const cart = await getCartByUserId(req.user.id);
       if (!cart) return res.status(404).send("Cart not found for this user");
 
-      const cartItems = await getCartItemsByUserId(req.user.id);
-      if (!cartItems)
-        return res.status(404).send("Cart items not found for this user");
+      // const cartItems = await getCartItemsByUserId(req.user.id);
+      // if (!cartItems)
+      //   return res.status(404).send("Cart items not found for this user");
 
       if (req.user.id !== cart.user_id)
         return res.status(403).send("You can only add items to your own cart");
-
-      // if (req.user.id !== item.user_id)
-      //   return res
-      //     .status(400)
-      //     .send("You can only add boxes that you created yourself");
 
       const boxType = req.body.boxType;
       if (boxType !== "pre-made" && boxType !== "custom")
@@ -108,18 +131,16 @@ router
       return next(error);
     }
   })
-  // -----------------------------Clears Cart---------------------------
+  // -----------------------------Clears Cart Items---------------------------
   .delete(async (req, res) => {
     const cart = await getCartByUserId(req.user.id);
     if (!cart) return res.status(404).send("Cart not found for this user");
 
     if (req.user.id !== cart.user_id)
-      return res
-        .status(403)
-        .send("You can only add delete items in your own cart");
+      return res.status(403).send("You can only delete items in your own cart");
 
-    const clearedCart = await clearAllCartItemsByUserId(req.user.id);
-    return res.status(204).send(clearedCart);
+    await deleteAllCartItems(cart.cart_id);
+    return res.status(204).end();
   });
 
 // -----------------------------POST /cart/sauces ->add a sauce to the cart---------------------------
@@ -138,10 +159,26 @@ router
       if (!Number.isInteger(sauceId) || sauceId < 1)
         return res
           .status(400)
-          .send("boxId must be a positive integer or more than 0");
+          .send("sauceId must be a positive integer or more than 0");
 
       const addSauce = await addSauceToCart(cart.cart_id, sauceId);
       return res.status(201).send(addSauce);
+    } catch (error) {
+      return next(error);
+    }
+  })
+  .delete(async (req, res, next) => {
+    try {
+      const cart = await getCartByUserId(req.user.id);
+      if (!cart) return res.status(404).send("Cart not found for this user");
+
+      if (req.user.id !== cart.user_id)
+        return res
+          .status(403)
+          .send("You can only delete items in your own cart");
+
+      deleteAllCartItemSauces(cart.cart_id);
+      return res.status(204).end();
     } catch (error) {
       return next(error);
     }
@@ -163,10 +200,26 @@ router
       if (!Number.isInteger(extraId) || extraId < 1)
         return res
           .status(400)
-          .send("boxId must be a positive integer or more than 0");
+          .send("extraId must be a positive integer or more than 0");
 
       const addExtra = await addExtraToCart(cart.cart_id, extraId);
       return res.status(201).send(addExtra);
+    } catch (error) {
+      return next(error);
+    }
+  })
+  .delete(async (req, res, next) => {
+    try {
+      const cart = await getCartByUserId(req.user.id);
+      if (!cart) return res.status(404).send("Cart not found for this user");
+
+      if (req.user.id !== cart.user_id)
+        return res
+          .status(403)
+          .send("You can only delete items in your own cart");
+
+      await deleteAllCartItemExtras(cart.cart_id);
+      return res.status(204).end();
     } catch (error) {
       return next(error);
     }
@@ -268,7 +321,7 @@ router
       const deletedCartItem = await deleteCartItem(req.cartItemId);
       if (!deletedCartItem) return res.status(404).send("Cart item not found");
 
-      return res.status(204).send(deletedCartItem);
+      return res.status(204).end();
     } catch (error) {
       return next(error);
     }
@@ -303,7 +356,7 @@ router
       );
       if (!deletedCartItemSauce) return res.status(404).send("Sauce not found");
 
-      return res.status(204).send(deletedCartItemSauce);
+      return res.status(204).end();
     } catch (error) {
       return next(error);
     }
@@ -338,7 +391,7 @@ router
       );
       if (!deletedCartItemExtra) return res.status(404).send("Sauce not found");
 
-      return res.status(204).send(deletedCartItemExtra);
+      return res.status(204).end();
     } catch (error) {
       return next(error);
     }

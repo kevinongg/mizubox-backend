@@ -2,9 +2,16 @@ import express from "express";
 const router = express.Router();
 export default router;
 
-import { deleteAllCartItems, getCartByUserId } from "#db/queries/cart";
+import {
+  deleteAllCartItemExtras,
+  deleteAllCartItems,
+  deleteAllCartItemSauces,
+  getCartByUserId,
+} from "#db/queries/cart";
 import {
   addOrderItem,
+  addOrderItemExtra,
+  addOrderItemSauce,
   createOrder,
   getOrderByIdForUser,
   getOrdersByUserId,
@@ -62,10 +69,20 @@ router.route("/checkout").post(async (req, res, next) => {
     for (const item of cart.items) {
       await addOrderItem(order.id, item.boxType, item.box_details.box_id);
     }
+    for (const item of cart.sauces) {
+      await addOrderItemSauce(order.id, item.sauce.sauce_id);
+    }
+    for (const item of cart.extras) {
+      await addOrderItemExtra(order.id, item.extra.extra_id);
+    }
     // clear cart
     await deleteAllCartItems(cart.cart_id);
+    await deleteAllCartItemSauces(cart.cart_id);
+    await deleteAllCartItemExtras(cart.cart_id);
 
-    res.status(201).send("Order successfully placed");
+    const fullOrder = await getOrderByIdForUser(order.id, req.user.id);
+
+    res.status(201).send("Order successfully placed", fullOrder);
   } catch (error) {
     return next(error);
   }

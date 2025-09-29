@@ -32,10 +32,9 @@ router
       next(error);
     }
   })
-  .post(requireBody(["userId"]), async (req, res, next) => {
+  .post(async (req, res, next) => {
     try {
-      const userId = Number(req.body.userId);
-      const userCustomBox = await createUserCustomBox(userId);
+      const userCustomBox = await createUserCustomBox(req.user.id);
       return res.status(201).send(userCustomBox);
     } catch (error) {
       next(error);
@@ -44,14 +43,14 @@ router
 
 router.param("id", async (req, res, next, id) => {
   try {
-    const userCustomBox = await getUserCustomBoxById(Number(id));
-    if (!userCustomBox)
-      return res.status(404).send("User's custom box not found");
-    req.userCustomBox = userCustomBox;
-
     const customBoxId = Number(id);
     if (!Number.isInteger(customBoxId) || customBoxId < 1)
       return res.status(400).send("Invalid custom box ID");
+
+    const userCustomBox = await getUserCustomBoxById(customBoxId);
+    if (!userCustomBox)
+      return res.status(404).send("User's custom box not found");
+    req.userCustomBox = userCustomBox;
 
     next();
   } catch (error) {
@@ -82,7 +81,7 @@ router
           .send("You are not authorized to modify this custom box");
 
       const nigiriId = Number(req.body.nigiriId);
-      if (!Number.isInteger(nigiriId) || nigiriId < 0)
+      if (!Number.isInteger(nigiriId) || nigiriId < 1)
         return res
           .status(400)
           .send("ID of a nigiri must be a positive integer");
@@ -107,7 +106,7 @@ router
           .send("You are not authorized to modify this custom box");
 
       const sauceId = Number(req.body.sauceId);
-      if (!Number.isInteger(sauceId) || sauceId < 0)
+      if (!Number.isInteger(sauceId) || sauceId < 1)
         return res.status(400).send("ID of a sauce must be a positive integer");
 
       const addSauce = await addSauceToUserCustomBox(
@@ -130,7 +129,7 @@ router
           .send("You are not authorized to modify this custom box");
 
       const extraId = Number(req.body.extraId);
-      if (!Number.isInteger(extraId) || extraId < 0)
+      if (!Number.isInteger(extraId) || extraId < 1)
         return res
           .status(400)
           .send("ID of an extra must be a positive integer");

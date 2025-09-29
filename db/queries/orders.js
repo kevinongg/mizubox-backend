@@ -13,58 +13,61 @@ export const createOrder = async (userId, totalPrice) => {
 };
 
 export const addOrderItem = async (orderId, boxType, boxId) => {
-  if (boxType === "pre-made") {
-    const sql = `
-    INSERT INTO order_items(order_id, box_type, pre_made_box_id) 
-    VALUES($1, $2, $3) 
-    RETURNING *
-    `;
-    const {
-      rows: [orderItem],
-    } = await db.query(sql, [orderId, boxType, boxId]);
-    return orderItem;
-  }
-
-  if (boxType === "custom") {
-    const sql = `
-    INSERT INTO order_items(order_id, box_type, user_custom_box_id) 
-    VALUES($1, $2, $3) 
-    RETURNING *
-    `;
-    const {
-      rows: [orderItem],
-    } = await db.query(sql, [orderId, boxType, boxId]);
-    return orderItem;
-  }
-
-  // handle unique constraint violation. if the same box exists, increase quantity + 1
-  if (err.code === "23505") {
+  try {
     if (boxType === "pre-made") {
       const sql = `
-      UPDATE order_items
-      SET quantity = quantity + 1
-      WHERE order_items.order_id = $1 AND order_items.pre_made_box_id = $2
+      INSERT INTO order_items(order_id, box_type, pre_made_box_id) 
+      VALUES($1, $2, $3) 
       RETURNING *
       `;
       const {
-        rows: [updatedOrderItem],
-      } = await db.query(sql, [orderId, boxId]);
-      return updatedOrderItem;
+        rows: [orderItem],
+      } = await db.query(sql, [orderId, boxType, boxId]);
+      return orderItem;
     }
 
     if (boxType === "custom") {
       const sql = `
-      UPDATE order_items
-      SET quantity = quantity + 1
-      WHERE order_items.order_id = $1 AND order_items.user_custom_box_id = $2
+      INSERT INTO order_items(order_id, box_type, user_custom_box_id) 
+      VALUES($1, $2, $3) 
       RETURNING *
       `;
       const {
-        rows: [updatedOrderItem],
-      } = await db.query(sql, [orderId, boxId]);
-      return updatedOrderItem;
+        rows: [orderItem],
+      } = await db.query(sql, [orderId, boxType, boxId]);
+      return orderItem;
+    }
+  } catch (err) {
+    if (err.code === "23505") {
+      if (boxType === "pre-made") {
+        const sql = `
+        UPDATE order_items
+        SET quantity = quantity + 1
+        WHERE order_items.order_id = $1 AND order_items.pre_made_box_id = $2
+        RETURNING *
+        `;
+        const {
+          rows: [updatedOrderItem],
+        } = await db.query(sql, [orderId, boxId]);
+        return updatedOrderItem;
+      }
+
+      if (boxType === "custom") {
+        const sql = `
+        UPDATE order_items
+        SET quantity = quantity + 1
+        WHERE order_items.order_id = $1 AND order_items.user_custom_box_id = $2
+        RETURNING *
+        `;
+        const {
+          rows: [updatedOrderItem],
+        } = await db.query(sql, [orderId, boxId]);
+        return updatedOrderItem;
+      }
     }
   }
+
+  // handle unique constraint violation. if the same box exists, increase quantity + 1
 };
 
 export const getOrdersByUserId = async (userId) => {
@@ -101,7 +104,7 @@ export const getOrdersByUserId = async (userId) => {
   return orders;
 };
 
-export const getOrderByIdForUser = async (userId, orderId) => {
+export const getOrderByIdForUser = async (orderId, userId) => {
   const sql = `
   SELECT 
     orders.id AS order_id,
@@ -353,7 +356,7 @@ export const getOrderByIdForUser = async (userId, orderId) => {
   `;
   const {
     rows: [order],
-  } = await db.query(sql, [userId, orderId]);
+  } = await db.query(sql, [orderId, userId]);
   return order;
 };
 
@@ -374,6 +377,7 @@ export const addOrderItemSauce = async (orderId, sauceId) => {
       UPDATE order_item_sauces
       SET quantity = quantity + 1
       WHERE order_item_sauces.order_id = $1 AND order_item_sauces.sauce_id = $2
+      RETURNING *
       `;
       const {
         rows: [updateOrderItemSauceQuantity],
@@ -400,6 +404,7 @@ export const addOrderItemExtra = async (orderId, extraId) => {
       UPDATE order_item_extras
       SET quantity = quantity + 1
       WHERE order_item_extras.order_id = $1 AND order_item_extras.extra_id = $2
+      RETURNING *
       `;
       const {
         rows: [updateOrderItemExtraQuantity],

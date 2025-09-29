@@ -31,7 +31,6 @@ export const getAllNigiris = async () => {
   SELECT * FROM nigiris ORDER BY id
   `;
   const { rows: nigiris } = await db.query(sql);
-  console.log(nigiris);
   return nigiris;
 };
 

@@ -17,7 +17,6 @@ export const getAllSauces = async () => {
     SELECT * FROM sauces ORDER BY id
     `;
   const { rows: sauces } = await db.query(sql);
-  console.log(sauces);
   return sauces;
 };
 

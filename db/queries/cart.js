@@ -69,6 +69,7 @@ export const addItemToCart = async (cartId, boxType, boxId) => {
         return updatedCartItem;
       }
     }
+    throw err;
   }
 };
 
@@ -427,22 +428,22 @@ export const getCartItemById = async (id) => {
 
 export const deleteAllCartItems = async (cartId) => {
   const sql = `
-  DELETE FROM cart_items WHERE cart_id = $1 RETURNING*
+  DELETE FROM cart_items WHERE cart_id = $1 RETURNING *
   `;
   const { rows: deletedCart } = await db.query(sql, [cartId]);
   return deletedCart;
 };
 
-export const clearAllCartItemsByUserId = async (userId) => {
-  const sql = `
-  DELETE 
-  FROM cart_items 
-  WHERE cart_id = (SELECT id FROM cart WHERE user_id = $1) 
-  RETURNING id
-  `;
-  const { rows: clearedCart } = await db.query(sql, [userId]);
-  return clearedCart;
-};
+// export const clearAllCartItemsByUserId = async (userId) => {
+//   const sql = `
+//   DELETE
+//   FROM cart_items
+//   WHERE cart_id = (SELECT id FROM cart WHERE user_id = $1)
+//   RETURNING id
+//   `;
+//   const { rows: clearedCart } = await db.query(sql, [userId]);
+//   return clearedCart;
+// };
 
 export const getCartItemsByUserId = async (userId) => {
   const sql = `
@@ -480,6 +481,7 @@ export const addSauceToCart = async (cartId, sauceId) => {
       } = await db.query(sql, [cartId, sauceId]);
       return updateSauceCartQuantity;
     }
+    throw err;
   }
 };
 
@@ -535,6 +537,7 @@ export const addExtraToCart = async (cartId, extraId) => {
       } = await db.query(sql, [cartId, extraId]);
       return updateExtraCartQuantity;
     }
+    throw err;
   }
 };
 
@@ -595,5 +598,28 @@ export const getOrCreateCartByUserId = async (userId) => {
         return getCartAfterViolation[0];
       }
     }
+    throw err;
   }
+};
+
+export const deleteAllCartItemSauces = async (cartId) => {
+  const sql = `
+  DELETE 
+  FROM cart_item_sauces
+  WHERE cart_id = $1
+  RETURNING *
+  `;
+  const { rows: deleteAllCartSauces } = await db.query(sql, [cartId]);
+  return deleteAllCartSauces;
+};
+
+export const deleteAllCartItemExtras = async (cartId) => {
+  const sql = `
+  DELETE 
+  FROM cart_item_extras
+  WHERE cart_id = $1
+  RETURNING *
+  `;
+  const { rows: deleteAllCartExtras } = await db.query(sql, [cartId]);
+  return deleteAllCartExtras;
 };
