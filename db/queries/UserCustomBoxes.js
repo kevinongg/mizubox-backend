@@ -286,17 +286,99 @@ export const getOrCreateActiveCustomBoxByUserId = async (userId) => {
   FROM user_custom_boxes 
   WHERE user_id = $1 
   ORDER BY created_at DESC
+  LIMIT 1
   `;
   const { rows: getCustomBox } = await db.query(getSql, [userId]);
-  if (getCustomBox.length) return getCustomBox[0];
 
-  const createSql = `
+  let customBoxId;
+  if (getCustomBox.length) {
+    customBoxId = getCustomBox[0].id;
+  } else {
+    const createSql = `
   INSERT INTO user_custom_boxes(user_id) 
   VALUES($1) 
   RETURNING *
   `;
+    const {
+      rows: [createCustomBox],
+    } = await db.query(createSql, [userId]);
+    customBoxId = createCustomBox.id;
+  }
+
+  const expandSql = `
+  SELECT 
+    user_custom_boxes.id AS user_custom_box_id,
+    user_id,
+    (SELECT COALESCE(json_agg(json_build_object(
+      'user_custom_box_content_id', user_custom_box_contents.id,
+      'nigiri_id', nigiris.id,
+      'name', nigiris.name,
+      'category', nigiris.category,
+      'image_url', nigiris.image_url,
+      'price', nigiris.price,
+      'quantity', user_custom_box_contents.quantity
+      )
+      ORDER BY
+        user_custom_box_contents.id ASC
+      ), '[]' 
+      )
+      FROM 
+        user_custom_box_contents
+      JOIN
+        nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
+      WHERE
+        user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
+      ) AS contents,
+
+    (SELECT COALESCE(json_agg(json_build_object(
+      'user_custom_box_sauce_id', user_custom_box_sauces.id,
+      'sauce_id', sauces.id,
+      'name', sauces.name,
+      'description', sauces.description,
+      'image_url', sauces.image_url,
+      'price', sauces.price,
+      'quantity', user_custom_box_sauces.quantity
+      )
+      ORDER BY
+        user_custom_box_sauces.id ASC
+      ), '[]'
+      )
+      FROM
+        user_custom_box_sauces
+      JOIN
+        sauces ON sauces.id = user_custom_box_sauces.sauce_id
+      WHERE
+        user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
+      ) AS sauces,
+    
+    (SELECT COALESCE(json_agg(json_build_object(
+      'user_custom_box_extra_id', user_custom_box_extras.id,
+      'extra_id', user_custom_box_extras.extra_id,
+      'name', extras.name,
+      'description', extras.description,
+      'image_url', extras.image_url,
+      'price', extras.price,
+      'quantity', user_custom_box_extras.quantity
+      )
+      ORDER BY
+        user_custom_box_extras.id ASC
+      ), '[]'
+      )
+      FROM
+        user_custom_box_extras
+      JOIN
+        extras ON extras.id = user_custom_box_extras.extra_id
+      WHERE
+        user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
+      ) AS extras
+
+  FROM 
+    user_custom_boxes
+  WHERE 
+    user_custom_boxes.id = $1
+  `;
   const {
-    rows: [createCustomBox],
-  } = await db.query(createSql, [userId]);
-  return createCustomBox;
+    rows: [expandedCustomBox],
+  } = await db.query(expandSql, [customBoxId]);
+  return expandedCustomBox;
 };
