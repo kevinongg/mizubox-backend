@@ -11,6 +11,7 @@ import {
   deleteNigiriInUserCustomBox,
   deleteSauceInUserCustomBox,
   getAllCustomBoxesByUserId,
+  getOrCreateActiveCustomBoxByUserId,
   getUserCustomBoxById,
   updateExtraQuantityInUserCustomBox,
   updateNigiriQuantityInUserCustomBox,
@@ -40,6 +41,15 @@ router
       next(error);
     }
   });
+
+router.route("/active").get(async (req, res, next) => {
+  try {
+    const userCustomBox = await getOrCreateActiveCustomBoxByUserId(req.user.id);
+    return res.status(200).send(userCustomBox);
+  } catch (error) {
+    return next(error);
+  }
+});
 
 router.param("id", async (req, res, next, id) => {
   try {

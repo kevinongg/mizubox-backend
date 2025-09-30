@@ -279,3 +279,24 @@ export const deleteExtraInUserCustomBox = async (userCustomBoxId, extraId) => {
   } = await db.query(sql, [userCustomBoxId, extraId]);
   return deletedExtra;
 };
+
+export const getOrCreateActiveCustomBoxByUserId = async (userId) => {
+  const getSql = `
+  SELECT * 
+  FROM user_custom_boxes 
+  WHERE user_id = $1 
+  ORDER BY created_at DESC
+  `;
+  const { rows: getCustomBox } = await db.query(getSql, [userId]);
+  if (getCustomBox.length) return getCustomBox[0];
+
+  const createSql = `
+  INSERT INTO user_custom_boxes(user_id) 
+  VALUES($1) 
+  RETURNING *
+  `;
+  const {
+    rows: [createCustomBox],
+  } = await db.query(createSql, [userId]);
+  return createCustomBox;
+};
