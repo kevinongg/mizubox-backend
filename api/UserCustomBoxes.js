@@ -6,6 +6,8 @@ import {
   addExtraToUserCustomBox,
   addNigiriToUserCustomBox,
   addSauceToUserCustomBox,
+  createAndGetNewBYOCustomBox,
+  // clearBYOCustomBox,
   createUserCustomBox,
   deleteExtraInUserCustomBox,
   deleteNigiriInUserCustomBox,
@@ -50,6 +52,30 @@ router.route("/active").get(async (req, res, next) => {
     return next(error);
   }
 });
+
+router.route("/active/new").post(async (req, res, next) => {
+  try {
+    const newCustomBox = await createAndGetNewBYOCustomBox(req.user.id);
+    res.status(201).send(newCustomBox);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// router.route("/active/clear").post(async (req, res, next) => {
+//   try {
+//     const activeCustomBox = await getOrCreateActiveCustomBoxByUserId(
+//       req.user.id
+//     );
+//     const activeCustomBoxId = activeCustomBox.user_custom_box_id;
+
+//     await clearBYOCustomBox(activeCustomBoxId);
+//     const refetchCustomBox = await getUserCustomBoxById(activeCustomBoxId);
+//     return res.status(200).send(refetchCustomBox);
+//   } catch (error) {
+//     return next(error);
+//   }
+// });
 
 router.param("id", async (req, res, next, id) => {
   try {

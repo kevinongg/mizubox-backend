@@ -57,7 +57,7 @@ router
       await deleteAllCartItemSauces(req.cart.id);
       await deleteAllCartItemExtras(req.cart.id);
 
-      const freshCart = await getCartByUserId(req.user.id);
+      await getCartByUserId(req.user.id);
 
       res.status(204).end();
     } catch (error) {
