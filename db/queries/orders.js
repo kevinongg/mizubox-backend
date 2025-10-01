@@ -12,29 +12,29 @@ export const createOrder = async (userId, totalPrice) => {
   return order;
 };
 
-export const addOrderItem = async (orderId, boxType, boxId) => {
+export const addOrderItem = async (orderId, boxType, boxId, quantity) => {
   try {
     if (boxType === "pre-made") {
       const sql = `
-      INSERT INTO order_items(order_id, box_type, pre_made_box_id) 
-      VALUES($1, $2, $3) 
+      INSERT INTO order_items(order_id, box_type, pre_made_box_id, quantity) 
+      VALUES($1, $2, $3, $4) 
       RETURNING *
       `;
       const {
         rows: [orderItem],
-      } = await db.query(sql, [orderId, boxType, boxId]);
+      } = await db.query(sql, [orderId, boxType, boxId, quantity]);
       return orderItem;
     }
 
     if (boxType === "custom") {
       const sql = `
-      INSERT INTO order_items(order_id, box_type, user_custom_box_id) 
-      VALUES($1, $2, $3) 
+      INSERT INTO order_items(order_id, box_type, user_custom_box_id, quantity) 
+      VALUES($1, $2, $3, $4) 
       RETURNING *
       `;
       const {
         rows: [orderItem],
-      } = await db.query(sql, [orderId, boxType, boxId]);
+      } = await db.query(sql, [orderId, boxType, boxId, quantity]);
       return orderItem;
     }
   } catch (err) {
@@ -42,56 +42,66 @@ export const addOrderItem = async (orderId, boxType, boxId) => {
       if (boxType === "pre-made") {
         const sql = `
         UPDATE order_items
-        SET quantity = quantity + 1
+        SET quantity = quantity + $3
         WHERE order_items.order_id = $1 AND order_items.pre_made_box_id = $2
         RETURNING *
         `;
         const {
           rows: [updatedOrderItem],
-        } = await db.query(sql, [orderId, boxId]);
+        } = await db.query(sql, [orderId, boxId, quantity]);
         return updatedOrderItem;
       }
 
       if (boxType === "custom") {
         const sql = `
         UPDATE order_items
-        SET quantity = quantity + 1
+        SET quantity = quantity + $3
         WHERE order_items.order_id = $1 AND order_items.user_custom_box_id = $2
         RETURNING *
         `;
         const {
           rows: [updatedOrderItem],
-        } = await db.query(sql, [orderId, boxId]);
+        } = await db.query(sql, [orderId, boxId, quantity]);
         return updatedOrderItem;
       }
     }
   }
-
-  // handle unique constraint violation. if the same box exists, increase quantity + 1
 };
 
 export const getOrdersByUserId = async (userId) => {
+  // used the split_part code from AI
   const sql = `
   SELECT 
     orders.id AS order_id, 
+    ('MB-' || UPPER(split_part(orders.public_order_id::text, '-', 4))) AS order_number,
     orders.status, 
-    orders.total_price, 
+    orders.total_price AS order_total, 
     orders.created_at,
+    
+    (SELECT COALESCE(SUM(order_items.quantity), 0)
+      FROM order_items
+      WHERE order_items.order_id = orders.id
+    ) +
+    (SELECT COALESCE(SUM(order_item_sauces.quantity), 0)
+      FROM order_item_sauces
+      WHERE order_item_sauces.order_id = orders.id
+    ) +
+    (SELECT COALESCE(SUM(order_item_extras.quantity), 0)
+      FROM order_item_extras
+      WHERE order_item_extras.order_id = orders.id
+    ) AS total_item_count,
 
-    (
-      SELECT COALESCE(COUNT(*), 0)
+    (SELECT COALESCE(SUM(order_items.quantity), 0)
       FROM order_items
       WHERE order_items.order_id = orders.id
     ) AS box_count,
 
-    (
-      SELECT COALESCE(COUNT(*), 0)
+    (SELECT COALESCE(SUM(order_item_sauces.quantity), 0)
       FROM order_item_sauces
       WHERE order_item_sauces.order_id = orders.id
     ) AS sauce_count,
 
-    (
-      SELECT COALESCE(COUNT(*), 0)
+    (SELECT COALESCE(SUM(order_item_extras.quantity), 0)
       FROM order_item_extras
       WHERE order_item_extras.order_id = orders.id
     ) AS extra_count
@@ -112,6 +122,35 @@ export const getOrderByIdForUser = async (orderId, userId) => {
     orders.status,
     orders.total_price,
     orders.created_at,
+
+    (SELECT COALESCE(SUM(order_items.quantity), 0)
+      FROM order_items
+      WHERE order_items.order_id = orders.id
+    ) +
+    (SELECT COALESCE(SUM(order_item_sauces.quantity), 0)
+      FROM order_item_sauces
+      WHERE order_item_sauces.order_id = orders.id
+    ) +
+    (SELECT COALESCE(SUM(order_item_extras.quantity), 0)
+      FROM order_item_extras
+      WHERE order_item_extras.order_id = orders.id
+    ) AS total_item_count,
+
+    (SELECT COALESCE(SUM(order_items.quantity), 0)
+      FROM order_items
+      WHERE order_items.order_id = orders.id
+    ) AS box_count,
+
+    (SELECT COALESCE(SUM(order_item_sauces.quantity), 0)
+      FROM order_item_sauces
+      WHERE order_item_sauces.order_id = orders.id
+    ) AS sauce_count,
+
+    (SELECT COALESCE(SUM(order_item_extras.quantity), 0)
+      FROM order_item_extras
+      WHERE order_item_extras.order_id = orders.id
+    ) AS extra_count,
+
     (SELECT COALESCE(json_agg(json_build_object(
       'order_item_id', order_items.id,
       'boxType', order_items.box_type,
@@ -360,55 +399,55 @@ export const getOrderByIdForUser = async (orderId, userId) => {
   return order;
 };
 
-export const addOrderItemSauce = async (orderId, sauceId) => {
+export const addOrderItemSauce = async (orderId, sauceId, quantity) => {
   try {
     const sql = `
-    INSERT INTO order_item_sauces(order_id, sauce_id) 
-    VALUES($1, $2) 
+    INSERT INTO order_item_sauces(order_id, sauce_id, quantity) 
+    VALUES($1, $2, $3) 
     RETURNING *
     `;
     const {
       rows: [addSauceToOrder],
-    } = await db.query(sql, [orderId, sauceId]);
+    } = await db.query(sql, [orderId, sauceId, quantity]);
     return addSauceToOrder;
   } catch (err) {
     if (err.code === "23505") {
       const sql = `
       UPDATE order_item_sauces
-      SET quantity = quantity + 1
+      SET quantity = quantity + $3
       WHERE order_item_sauces.order_id = $1 AND order_item_sauces.sauce_id = $2
       RETURNING *
       `;
       const {
         rows: [updateOrderItemSauceQuantity],
-      } = await db.query(sql, [orderId, sauceId]);
+      } = await db.query(sql, [orderId, sauceId, quantity]);
       return updateOrderItemSauceQuantity;
     }
   }
 };
 
-export const addOrderItemExtra = async (orderId, extraId) => {
+export const addOrderItemExtra = async (orderId, extraId, quantity) => {
   try {
     const sql = `
-    INSERT INTO order_item_extras(order_id, extra_id) 
-    VALUES($1, $2) 
+    INSERT INTO order_item_extras(order_id, extra_id, quantity) 
+    VALUES($1, $2, $3) 
     RETURNING *
     `;
     const {
       rows: [addExtraToOrder],
-    } = await db.query(sql, [orderId, extraId]);
+    } = await db.query(sql, [orderId, extraId, quantity]);
     return addExtraToOrder;
   } catch (err) {
     if (err.code === "23505") {
       const sql = `
       UPDATE order_item_extras
-      SET quantity = quantity + 1
+      SET quantity = quantity + $3
       WHERE order_item_extras.order_id = $1 AND order_item_extras.extra_id = $2
       RETURNING *
       `;
       const {
         rows: [updateOrderItemExtraQuantity],
-      } = await db.query(sql, [orderId, extraId]);
+      } = await db.query(sql, [orderId, extraId, quantity]);
       return updateOrderItemExtraQuantity;
     }
   }

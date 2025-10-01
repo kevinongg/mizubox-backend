@@ -75,7 +75,7 @@ price DECIMAL(6,2) DEFAULT 0.00
 CREATE TABLE user_custom_boxes (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMPZ DEFAULT now()
 );
 
 -- =============================================================
@@ -139,7 +139,7 @@ CREATE TABLE cart (
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'active', --(eg.. 'active' || 'checked_out')
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMPZ DEFAULT now(),
   UNIQUE(user_id)
 );
 
@@ -181,20 +181,22 @@ CREATE TABLE orders (
   user_id INT REFERENCES users(id),
   total_price DECIMAL(10,2) NOT NULL,
   status TEXT NOT NULL DEFAULT 'placed', -- (eg.. 'placed', 'confirmed', 'delivered')
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMPZ NOT NULL DEFAULT now()
 );
 
 /* ========= JUNCTION TABLE (ORDERS & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
 -- Table to grab order history box data
 CREATE TABLE order_items (
   id SERIAL PRIMARY KEY,
+  public_order_id UUID NOT NULL DEFAULT gen_random_uuid(),
   order_id INT REFERENCES orders(id) ON DELETE CASCADE,
   box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
   quantity INT DEFAULT 1,
-  UNIQUE (order_id, pre_made_box_id),
-  UNIQUE (order_id, user_custom_box_id)
+  UNIQUE(order_id, pre_made_box_id),
+  UNIQUE(order_id, user_custom_box_id),
+  UNIQUE(public_order_id)
 );
 
 CREATE TABLE order_item_sauces (

@@ -67,13 +67,18 @@ router.route("/checkout").post(async (req, res, next) => {
 
     // add each cart item into order_items(cart.items)
     for (const item of cart.items) {
-      await addOrderItem(order.id, item.boxType, item.box_details.box_id);
+      await addOrderItem(
+        order.id,
+        item.boxType,
+        item.box_details.box_id,
+        item.quantity
+      );
     }
     for (const item of cart.sauces) {
-      await addOrderItemSauce(order.id, item.sauce.sauce_id);
+      await addOrderItemSauce(order.id, item.sauce.sauce_id, item.quantity);
     }
     for (const item of cart.extras) {
-      await addOrderItemExtra(order.id, item.extra.extra_id);
+      await addOrderItemExtra(order.id, item.extra.extra_id, item.quantity);
     }
     // clear cart
     await deleteAllCartItems(cart.cart_id);
@@ -82,7 +87,7 @@ router.route("/checkout").post(async (req, res, next) => {
 
     const fullOrder = await getOrderByIdForUser(order.id, req.user.id);
 
-    res.status(201).send("Order successfully placed", fullOrder);
+    res.status(201).send(fullOrder);
   } catch (error) {
     return next(error);
   }
