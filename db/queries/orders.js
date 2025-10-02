@@ -354,7 +354,7 @@ export const getOrderByIdForUser = async (publicOrderId, userId) => {
   ) AS sauces,
 
   (SELECT COALESCE(json_agg(json_build_object(
-    'order_extra_item_id', order_item_extras.id,
+    'order_item_extra_id', order_item_extras.id,
     'quantity', order_item_extras.quantity,
     'extra_total',
       (SELECT 
