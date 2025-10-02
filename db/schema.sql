@@ -178,25 +178,25 @@ CREATE TABLE cart_item_extras (
 -- Stores completed purchases
 CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
+  public_order_id UUID NOT NULL DEFAULT gen_random_uuid(),
   user_id INT REFERENCES users(id),
   total_price DECIMAL(10,2) NOT NULL,
   status TEXT NOT NULL DEFAULT 'placed', -- (eg.. 'placed', 'confirmed', 'delivered')
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(public_order_id)
 );
 
 /* ========= JUNCTION TABLE (ORDERS & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
 -- Table to grab order history box data
 CREATE TABLE order_items (
   id SERIAL PRIMARY KEY,
-  public_order_id UUID NOT NULL DEFAULT gen_random_uuid(),
   order_id INT REFERENCES orders(id) ON DELETE CASCADE,
   box_type TEXT CHECK (box_type IN ('pre-made', 'custom')),
   pre_made_box_id INT REFERENCES pre_made_boxes(id),
   user_custom_box_id INT REFERENCES user_custom_boxes(id),
   quantity INT DEFAULT 1,
   UNIQUE(order_id, pre_made_box_id),
-  UNIQUE(order_id, user_custom_box_id),
-  UNIQUE(public_order_id)
+  UNIQUE(order_id, user_custom_box_id)
 );
 
 CREATE TABLE order_item_sauces (
