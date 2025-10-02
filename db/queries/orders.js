@@ -73,7 +73,8 @@ export const getOrdersByUserId = async (userId) => {
   const sql = `
   SELECT 
     orders.id AS order_id, 
-    ('MB-' || UPPER(split_part(orders.public_order_id::text, '-', 4))) AS order_number,
+    orders.public_order_id,
+    ('MB-' || UPPER(split_part(orders.public_order_id::text, '-', 1))) AS order_number,
     orders.status, 
     orders.total_price AS order_total, 
     orders.created_at,
@@ -114,10 +115,12 @@ export const getOrdersByUserId = async (userId) => {
   return orders;
 };
 
-export const getOrderByIdForUser = async (orderId, userId) => {
+export const getOrderByIdForUser = async (publicOrderId, userId) => {
   const sql = `
   SELECT 
     orders.id AS order_id,
+    orders.public_order_id,
+    ('MB-' || UPPER(split_part(orders.public_order_id::text, '-', 1))) AS order_number,
     orders.user_id,
     orders.status,
     orders.total_price,
@@ -391,11 +394,11 @@ export const getOrderByIdForUser = async (orderId, userId) => {
   FROM 
     orders 
   WHERE 
-    orders.id = $1 AND orders.user_id = $2
+    orders.public_order_id = $1 AND orders.user_id = $2
   `;
   const {
     rows: [order],
-  } = await db.query(sql, [orderId, userId]);
+  } = await db.query(sql, [publicOrderId, userId]);
   return order;
 };
 
