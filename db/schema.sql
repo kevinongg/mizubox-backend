@@ -75,7 +75,7 @@ price DECIMAL(6,2) DEFAULT 0.00
 CREATE TABLE user_custom_boxes (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT now()
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- =============================================================
@@ -139,7 +139,7 @@ CREATE TABLE cart (
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'active', --(eg.. 'active' || 'checked_out')
-  created_at TIMESTAMP DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(user_id)
 );
 
@@ -181,7 +181,7 @@ CREATE TABLE orders (
   user_id INT REFERENCES users(id),
   total_price DECIMAL(10,2) NOT NULL,
   status TEXT NOT NULL DEFAULT 'placed', -- (eg.. 'placed', 'confirmed', 'delivered')
-  created_at TIMESTAMP NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 /* ========= JUNCTION TABLE (ORDERS & PRE-MADE BOXES & CUSTOM BOXES [many-to-many]) ========= */
