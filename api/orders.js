@@ -93,15 +93,15 @@ router.route("/checkout").post(async (req, res, next) => {
   }
 });
 
-router.param("id", async (req, res, next, id) => {
+router.param("publicOrderId", async (req, res, next, publicOrderId) => {
   try {
-    const orderId = Number(id);
-    if (!Number.isInteger(orderId) || orderId < 1)
-      return res.status(400).send("Invalid order ID");
-    console.log(orderId);
-    console.log(req.user.id);
-    const order = await getOrderByIdForUser(orderId, req.user.id);
+    // const orderId = Number(id);
+    // if (!Number.isInteger(orderId) || orderId < 1)
+    //   return res.status(400).send("Invalid order ID");
+
+    const order = await getOrderByIdForUser(publicOrderId, req.user.id);
     if (!order) return res.status(404).send("Order not found");
+    console.log(order);
 
     req.order = order;
     next();
@@ -110,7 +110,7 @@ router.param("id", async (req, res, next, id) => {
   }
 });
 
-router.route("/:id").get(async (req, res) => {
+router.route("/:publicOrderId").get(async (req, res) => {
   try {
     if (req.user.id !== req.order.user_id)
       return res.status(403).send("You are not authorized to view this order");
