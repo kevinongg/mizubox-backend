@@ -138,7 +138,7 @@ CREATE TABLE pre_made_box_contents (
 CREATE TABLE cart (
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id) ON DELETE CASCADE,
-  status TEXT NOT NULL DEFAULT 'active', --(eg.. 'active' || 'checked_out')
+  status TEXT NOT NULL DEFAULT 'Active', --(eg.. 'active' || 'checked_out')
   created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(user_id)
 );
@@ -181,7 +181,7 @@ CREATE TABLE orders (
   public_order_id UUID NOT NULL DEFAULT gen_random_uuid(),
   user_id INT REFERENCES users(id),
   total_price DECIMAL(10,2) NOT NULL,
-  status TEXT NOT NULL DEFAULT 'placed', -- (eg.. 'placed', 'confirmed', 'delivered')
+  status TEXT NOT NULL DEFAULT 'Placed', -- (eg.. 'placed', 'confirmed', 'delivered')
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(public_order_id)
 );
