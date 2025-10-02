@@ -64,6 +64,7 @@ router.route("/checkout").post(async (req, res, next) => {
 
     // create order
     const order = await createOrder(req.user.id, cart.cart_total);
+    console.log(order);
 
     // add each cart item into order_items(cart.items)
     for (const item of cart.items) {
@@ -85,7 +86,10 @@ router.route("/checkout").post(async (req, res, next) => {
     await deleteAllCartItemSauces(cart.cart_id);
     await deleteAllCartItemExtras(cart.cart_id);
 
-    const fullOrder = await getOrderByIdForUser(order.id, req.user.id);
+    const fullOrder = await getOrderByIdForUser(
+      order.public_order_id,
+      req.user.id
+    );
 
     res.status(201).send(fullOrder);
   } catch (error) {
