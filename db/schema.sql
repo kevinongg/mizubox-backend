@@ -181,7 +181,7 @@ CREATE TABLE orders (
   public_order_id UUID NOT NULL DEFAULT gen_random_uuid(),
   user_id INT REFERENCES users(id),
   total_price DECIMAL(10,2) NOT NULL,
-  status TEXT NOT NULL DEFAULT 'Placed', -- (eg.. 'placed', 'confirmed', 'delivered')
+  status TEXT NOT NULL DEFAULT 'Confirmed', -- (eg.. 'placed', 'confirmed', 'delivered')
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(public_order_id)
 );
