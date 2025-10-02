@@ -314,8 +314,6 @@ export const getOrderByIdForUser = async (publicOrderId, userId) => {
     )
     FROM
       order_items
-    JOIN 
-      orders ON orders.id = order_items.order_id
     WHERE
       order_items.order_id = orders.id
   ) AS items,
