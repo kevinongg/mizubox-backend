@@ -6,9 +6,13 @@ import { createToken } from "#utils/jwt";
 import {
   createUser,
   getUserByEmailAndPassword,
+  getUserById,
   getUserInfoByUserId,
+  updateUserAccountById,
+  updateUserPasswordByUserId,
 } from "#db/queries/users";
 
+import bcrypt from "bcrypt";
 import requireBody from "../middleware/requireBody.js";
 import requireUser from "../middleware/requireUser.js";
 // ----------------users register-------------
@@ -35,12 +39,54 @@ router
   });
 
 // ----------------users about me-------------
-router.route("/me").get(requireUser, async (req, res, next) => {
-  try {
-    const user = await getUserInfoByUserId(req.user.id);
-    if (!user) return res.status(404).send("User not found");
-    res.status(200).send(user);
-  } catch (error) {
-    return next(error);
-  }
+router
+  .route("/me")
+  .get(requireUser, async (req, res, next) => {
+    try {
+      const user = await getUserInfoByUserId(req.user.id);
+      if (!user) return res.status(404).send("User not found");
+      res.status(200).send(user);
+    } catch (error) {
+      return next(error);
+    }
+  })
+  .patch(requireUser, async (req, res, next) => {
+    try {
+      const { name, email, address, mobile_number } = req.body;
+      if (!name && !email && !address && !mobile_number)
+        return res.status(400).send("At least one field must be provided");
+
+      const updatedUser = await updateUserAccountById(req.user.id, {
+        name,
+        email,
+        address,
+        mobile_number,
+      });
+      return res.status(200).send(updatedUser);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+router.route("/me/password").patch(requireUser, async (req, res, next) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword)
+    return res.status(400).send("Current and new password are both required");
+
+  if (newPassword.length < 8)
+    return res.status(400).send("New password must be at least 8 characters!");
+
+  const user = await getUserById(req.user.id);
+  const doesPasswordMatch = await bcrypt.compare(
+    currentPassword,
+    user.password_hash
+  );
+  if (!doesPasswordMatch)
+    return res.status(401).send("Current password is incorrect");
+
+  const updatedUserPassword = await updateUserPasswordByUserId(
+    req.user.id,
+    newPassword
+  );
+  return res.status(200).send(updatedUserPassword);
 });
