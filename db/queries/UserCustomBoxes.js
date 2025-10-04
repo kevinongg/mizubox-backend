@@ -505,6 +505,38 @@ export const createAndGetNewBYOCustomBox = async (userId) => {
   return await getUserCustomBoxById(newCustomBox.id);
 };
 
+export const deleteAllNigirisInCustomBox = async (customBoxId) => {
+  const sql = `
+  DELETE 
+  FROM user_custom_box_contents 
+  WHERE user_custom_box_id = $1
+  RETURNING *
+  `;
+  const { rows: deleteNigirisInCustomBox } = await db.query(sql, [customBoxId]);
+  return deleteNigirisInCustomBox;
+};
+
+export const deleteAllSaucesInCustomBox = async (customBoxId) => {
+  const sql = `
+  DELETE 
+  FROM user_custom_box_sauces
+  WHERE user_custom_box_id = $1
+  RETURNING *
+  `;
+  const { rows: deleteSaucesInCustomBox } = await db.query(sql, [customBoxId]);
+  return deleteSaucesInCustomBox;
+};
+export const deleteAllExtrasInCustomBox = async (customBoxId) => {
+  const sql = `
+  DELETE 
+  FROM user_custom_box_extras
+  WHERE user_custom_box_id = $1
+  RETURNING *
+  `;
+  const { rows: deleteExtrasInCustomBox } = await db.query(sql, [customBoxId]);
+  return deleteExtrasInCustomBox;
+};
+
 // export const clearBYOCustomBox = async (customBoxId) => {
 //   const deleteNigiriSql = `
 //   DELETE FROM user_custom_box_contents

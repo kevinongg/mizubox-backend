@@ -9,6 +9,9 @@ import {
   createAndGetNewBYOCustomBox,
   // clearBYOCustomBox,
   createUserCustomBox,
+  deleteAllExtrasInCustomBox,
+  deleteAllNigirisInCustomBox,
+  deleteAllSaucesInCustomBox,
   deleteExtraInUserCustomBox,
   deleteNigiriInUserCustomBox,
   deleteSauceInUserCustomBox,
@@ -44,14 +47,33 @@ router
     }
   });
 
-router.route("/active").get(async (req, res, next) => {
-  try {
-    const userCustomBox = await getOrCreateActiveCustomBoxByUserId(req.user.id);
-    return res.status(200).send(userCustomBox);
-  } catch (error) {
-    return next(error);
-  }
-});
+router
+  .route("/active")
+  .get(async (req, res, next) => {
+    try {
+      const activeCustomBox = await getOrCreateActiveCustomBoxByUserId(
+        req.user.id
+      );
+      console.log(activeCustomBox);
+      return res.status(200).send(activeCustomBox);
+    } catch (error) {
+      return next(error);
+    }
+  })
+  .delete(async (req, res, next) => {
+    const activeCustomBox = await getOrCreateActiveCustomBoxByUserId(
+      req.user.id
+    );
+    console.log(activeCustomBox);
+
+    if (req.user.id !== activeCustomBox.user_id)
+      return res.status(404).json({ message: "User's custom box not found" });
+
+    await deleteAllNigirisInCustomBox(activeCustomBox.user_custom_box_id);
+    await deleteAllSaucesInCustomBox(activeCustomBox.user_custom_box_id);
+    await deleteAllExtrasInCustomBox(activeCustomBox.user_custom_box_id);
+    return res.status(204).end();
+  });
 
 router.route("/active/new").post(async (req, res, next) => {
   try {
