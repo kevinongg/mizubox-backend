@@ -269,6 +269,30 @@ const seed = async () => {
       imageUrl: "https://m.media-amazon.com/images/I/61RSoIGGXeL._SL1000_.jpg",
       price: 19.5,
     },
+    {
+      name: "Crystal Ponzu",
+      description:
+        "It's a ponzu vinegar that lets you experience the refreshing flavor of yuzu.",
+      imageUrl:
+        "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759772554/Crystal_Ponzu_Sauce_gvixr6.webp",
+      price: 24.99,
+    },
+    {
+      name: "Kewpie Mayo",
+      description:
+        "Kewpie Mayonnaise is everyone's favorite mayo from Japan. Completely different than any domestic mayo with more flavor.",
+      imageUrl:
+        "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759772553/kewpiemayo__bjwxsx.jpg",
+      price: 8.4,
+    },
+    {
+      name: "Umeboshi Plum Paste",
+      description:
+        "Umeboshi is a dried and pickled fruit that resembles a plum but is actually a closer relative to the apricot. This salted and picked fruit is salty and sour at the same time. It is often used to eat with rice, noodles, rice balls (onigiri) and also can be used with alcohol as a flavor enhancer. Many people in Japan eat umeboshi as a cold remedy and has become a staple for many families in Japan.",
+      imageUrl:
+        "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759772946/Umeboshi_plum_paste_ltm0tf.jpg",
+      price: 10.99,
+    },
   ];
 
   let sauces = [];
@@ -308,7 +332,7 @@ const seed = async () => {
         "Burgundy Truffles have an intense, hazelnut-like aroma and are highly prized for their gastronomic qualities. They are used in the haute cuisine of France and Italy, as well as a substitute for the Périgord black truffle (T. melanosporum).",
       imageUrl:
         "https://shop.yamaseafood.com/cdn/shop/products/FreshBurgundyBlackTruffle_TuberUncinatum-450954.png?v=1707412525&width=493",
-      price: 50,
+      price: 50.0,
     },
     {
       name: "Hokkaido Uni",
@@ -316,7 +340,23 @@ const seed = async () => {
         "Hokkaido Uni is considered by many to be the best uni in the world. The Uni (Sea Urchin) from Hokkaido feed on the plentiful Kombu (kelp) in the area, gaining a rich and deep umami flavor.",
       imageUrl:
         "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759765937/176313597_3897429473644896_3982068226743707469_n_f7dl8d.jpg",
-      price: 200,
+      price: 200.0,
+    },
+    {
+      name: "Wasabi Salt",
+      description:
+        "Produced by Kameya, a wasabi specialty company based in Shizuoka Prefecture, the key ingredient is carefully selected from locally grown hon wasabi—known as “real wasabi.” It is made up of blending powdered hon wasabi leaves, super-fine roasted salt, and umami-rich kombu kelp powder from Hokkaido.",
+      imageUrl:
+        "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759772556/WasabiSalt-283315_yhlloy.webp",
+      price: 9.99,
+    },
+    {
+      name: "Japanese Wasabi Roots",
+      description:
+        "Japanese wasabi root is directly imported from Japan. Most of the wasabi consumed in America that comes in a tube is not what a wasabi should taste like.",
+      imageUrl:
+        "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759772554/JapaneseWasabiRoots_c981a0bd-4d8c-4314-a3f9-b3a1b8aaaaf8-321279_l6pxzp.webp",
+      price: 90.0,
     },
   ];
 
@@ -346,7 +386,7 @@ const seed = async () => {
       name: "O-toro Lover",
       description: "14 pieces featuring Fatty Tuna",
       imageUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJ5nBaf-V43FujPdINAJJaSQQ5z-aUIUcMcA&s",
+        "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759766737/otoro_lover_gygswq.jpg",
       price: 110.0,
     },
     {
@@ -371,6 +411,13 @@ const seed = async () => {
       imageUrl:
         "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759767703/autumn_box_bey0pi.jpg",
       price: 120.0,
+    },
+    {
+      name: "Party Tray",
+      description: "50 pieces of chef's choice",
+      imageUrl:
+        "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759772039/357639124_1464372134336559_2500889137828892590_n_zldicj.jpg",
+      price: 300.0,
     },
   ];
 
@@ -422,6 +469,17 @@ const seed = async () => {
   await addNigiriToPreMadeBox(preMadeBoxes[4].id, nigiris[8].id, 1);
   await addNigiriToPreMadeBox(preMadeBoxes[4].id, nigiris[7].id, 1);
   await addNigiriToPreMadeBox(preMadeBoxes[4].id, nigiris[6].id, 1);
+  //*** Assign nigiri into created Party Tray ***//
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[5].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[6].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[7].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[8].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[9].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[10].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[1].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[2].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[3].id, 5);
+  await addNigiriToPreMadeBox(preMadeBoxes[5].id, nigiris[4].id, 5);
 
   // //======================================================================================================
 
