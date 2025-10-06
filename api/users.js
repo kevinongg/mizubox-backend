@@ -32,7 +32,7 @@ router
     const { email, password } = req.body;
     const user = await getUserByEmailAndPassword(email, password);
     if (!user) {
-      return res.status(401).send("Invalid email or password");
+      return res.status(401).json({ message: "Invalid email or password" });
     }
     const token = createToken({ id: user.id });
     return res.status(200).send(token);
@@ -44,7 +44,7 @@ router
   .get(requireUser, async (req, res, next) => {
     try {
       const user = await getUserInfoByUserId(req.user.id);
-      if (!user) return res.status(404).send("User not found");
+      if (!user) return res.status(404).json({ message: "User not found" });
       res.status(200).send(user);
     } catch (error) {
       return next(error);
@@ -72,10 +72,10 @@ router
 
 router.route("/me/password").patch(requireUser, async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
-  if (!currentPassword || !newPassword)
-    return res
-      .status(400)
-      .json({ message: "Current and new password are both required." });
+  // if (!currentPassword || !newPassword)
+  //   return res
+  //     .status(400)
+  //     .json({ message: "Current and new password are both required." });
 
   if (newPassword.length < 8)
     return res
