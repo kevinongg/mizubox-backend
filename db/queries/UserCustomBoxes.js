@@ -361,138 +361,138 @@ export const getOrCreateActiveCustomBoxByUserId = async (userId) => {
     customBoxId = createCustomBox.id;
   }
 
-  const expandSql = `
-    SELECT 
-    user_custom_boxes.id AS user_custom_box_id,
-    user_id,
+  return await getUserCustomBoxById(customBoxId);
 
-    (SELECT COALESCE(SUM(nigiris.price * user_custom_box_contents.quantity), 0)
-      FROM
-        user_custom_box_contents
-      JOIN
-        nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
-      WHERE
-        user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
-    ) +
-      (SELECT COALESCE(SUM(sauces.price * user_custom_box_sauces.quantity), 0)
-      FROM
-        user_custom_box_sauces
-      JOIN
-        sauces ON sauces.id = user_custom_box_sauces.sauce_id
-      WHERE
-        user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
-    ) +
-      (SELECT COALESCE(SUM(extras.price * user_custom_box_extras.quantity), 0)
-      FROM
-        user_custom_box_extras
-      JOIN
-        extras ON extras.id = user_custom_box_extras.extra_id
-      WHERE
-        user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
-    ) AS box_total,
+  // const expandSql = `
+  //   SELECT
+  //   user_custom_boxes.id AS user_custom_box_id,
+  //   user_id,
 
-    (SELECT COALESCE(SUM(nigiris.price * user_custom_box_contents.quantity), 0)
-      FROM
-        user_custom_box_contents
-      JOIN
-        nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
-      WHERE
-        user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
-    ) AS nigiri_total,
+  //   (SELECT COALESCE(SUM(nigiris.price * user_custom_box_contents.quantity), 0)
+  //     FROM
+  //       user_custom_box_contents
+  //     JOIN
+  //       nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
+  //     WHERE
+  //       user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
+  //   ) +
+  //     (SELECT COALESCE(SUM(sauces.price * user_custom_box_sauces.quantity), 0)
+  //     FROM
+  //       user_custom_box_sauces
+  //     JOIN
+  //       sauces ON sauces.id = user_custom_box_sauces.sauce_id
+  //     WHERE
+  //       user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
+  //   ) +
+  //     (SELECT COALESCE(SUM(extras.price * user_custom_box_extras.quantity), 0)
+  //     FROM
+  //       user_custom_box_extras
+  //     JOIN
+  //       extras ON extras.id = user_custom_box_extras.extra_id
+  //     WHERE
+  //       user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
+  //   ) AS box_total,
 
-    (SELECT COALESCE(SUM(sauces.price * user_custom_box_sauces.quantity), 0)
-      FROM
-        user_custom_box_sauces
-      JOIN
-        sauces ON sauces.id = user_custom_box_sauces.sauce_id
-      WHERE
-        user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
-    ) AS sauce_total,
+  //   (SELECT COALESCE(SUM(nigiris.price * user_custom_box_contents.quantity), 0)
+  //     FROM
+  //       user_custom_box_contents
+  //     JOIN
+  //       nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
+  //     WHERE
+  //       user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
+  //   ) AS nigiri_total,
 
-    (SELECT COALESCE(SUM(extras.price * user_custom_box_extras.quantity), 0)
-      FROM
-        user_custom_box_extras
-      JOIN
-        extras ON extras.id = user_custom_box_extras.extra_id
-      WHERE
-        user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
-    ) AS extra_total,
+  //   (SELECT COALESCE(SUM(sauces.price * user_custom_box_sauces.quantity), 0)
+  //     FROM
+  //       user_custom_box_sauces
+  //     JOIN
+  //       sauces ON sauces.id = user_custom_box_sauces.sauce_id
+  //     WHERE
+  //       user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
+  //   ) AS sauce_total,
 
-  
+  //   (SELECT COALESCE(SUM(extras.price * user_custom_box_extras.quantity), 0)
+  //     FROM
+  //       user_custom_box_extras
+  //     JOIN
+  //       extras ON extras.id = user_custom_box_extras.extra_id
+  //     WHERE
+  //       user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
+  //   ) AS extra_total,
 
-    (SELECT COALESCE(json_agg(json_build_object(
-      'user_custom_box_content_id', user_custom_box_contents.id,
-      'nigiri_id', nigiris.id,
-      'name', nigiris.name,
-      'category', nigiris.category,
-      'image_url', nigiris.image_url,
-      'price', nigiris.price,
-      'quantity', user_custom_box_contents.quantity,
-      'nigiri_total', nigiris.price * user_custom_box_contents.quantity
-      )
-      ORDER BY
-        user_custom_box_contents.id ASC
-      ), '[]' 
-      )
-      FROM 
-        user_custom_box_contents
-      JOIN
-        nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
-      WHERE
-        user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
-      ) AS contents,
+  //   (SELECT COALESCE(json_agg(json_build_object(
+  //     'user_custom_box_content_id', user_custom_box_contents.id,
+  //     'nigiri_id', nigiris.id,
+  //     'name', nigiris.name,
+  //     'category', nigiris.category,
+  //     'image_url', nigiris.image_url,
+  //     'price', nigiris.price,
+  //     'quantity', user_custom_box_contents.quantity,
+  //     'nigiri_total', nigiris.price * user_custom_box_contents.quantity
+  //     )
+  //     ORDER BY
+  //       user_custom_box_contents.id ASC
+  //     ), '[]'
+  //     )
+  //     FROM
+  //       user_custom_box_contents
+  //     JOIN
+  //       nigiris ON nigiris.id = user_custom_box_contents.nigiri_id
+  //     WHERE
+  //       user_custom_box_contents.user_custom_box_id = user_custom_boxes.id
+  //     ) AS contents,
 
-    (SELECT COALESCE(json_agg(json_build_object(
-      'user_custom_box_sauce_id', user_custom_box_sauces.id,
-      'sauce_id', sauces.id,
-      'name', sauces.name,
-      'description', sauces.description,
-      'image_url', sauces.image_url,
-      'price', sauces.price,
-      'quantity', user_custom_box_sauces.quantity
-      )
-      ORDER BY
-        user_custom_box_sauces.id ASC
-      ), '[]'
-      )
-      FROM
-        user_custom_box_sauces
-      JOIN
-        sauces ON sauces.id = user_custom_box_sauces.sauce_id
-      WHERE
-        user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
-      ) AS sauces,
-    
-    (SELECT COALESCE(json_agg(json_build_object(
-      'user_custom_box_extra_id', user_custom_box_extras.id,
-      'extra_id', user_custom_box_extras.extra_id,
-      'name', extras.name,
-      'description', extras.description,
-      'image_url', extras.image_url,
-      'price', extras.price,
-      'quantity', user_custom_box_extras.quantity
-      )
-      ORDER BY
-        user_custom_box_extras.id ASC
-      ), '[]'
-      )
-      FROM
-        user_custom_box_extras
-      JOIN
-        extras ON extras.id = user_custom_box_extras.extra_id
-      WHERE
-        user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
-      ) AS extras
+  //   (SELECT COALESCE(json_agg(json_build_object(
+  //     'user_custom_box_sauce_id', user_custom_box_sauces.id,
+  //     'sauce_id', sauces.id,
+  //     'name', sauces.name,
+  //     'description', sauces.description,
+  //     'image_url', sauces.image_url,
+  //     'price', sauces.price,
+  //     'quantity', user_custom_box_sauces.quantity
+  //     )
+  //     ORDER BY
+  //       user_custom_box_sauces.id ASC
+  //     ), '[]'
+  //     )
+  //     FROM
+  //       user_custom_box_sauces
+  //     JOIN
+  //       sauces ON sauces.id = user_custom_box_sauces.sauce_id
+  //     WHERE
+  //       user_custom_box_sauces.user_custom_box_id = user_custom_boxes.id
+  //     ) AS sauces,
 
-  FROM 
-    user_custom_boxes
-  WHERE 
-    user_custom_boxes.id = $1
-  `;
-  const {
-    rows: [expandedCustomBox],
-  } = await db.query(expandSql, [customBoxId]);
-  return expandedCustomBox;
+  //   (SELECT COALESCE(json_agg(json_build_object(
+  //     'user_custom_box_extra_id', user_custom_box_extras.id,
+  //     'extra_id', user_custom_box_extras.extra_id,
+  //     'name', extras.name,
+  //     'description', extras.description,
+  //     'image_url', extras.image_url,
+  //     'price', extras.price,
+  //     'quantity', user_custom_box_extras.quantity
+  //     )
+  //     ORDER BY
+  //       user_custom_box_extras.id ASC
+  //     ), '[]'
+  //     )
+  //     FROM
+  //       user_custom_box_extras
+  //     JOIN
+  //       extras ON extras.id = user_custom_box_extras.extra_id
+  //     WHERE
+  //       user_custom_box_extras.user_custom_box_id = user_custom_boxes.id
+  //     ) AS extras
+
+  // FROM
+  //   user_custom_boxes
+  // WHERE
+  //   user_custom_boxes.id = $1
+  // `;
+  // const {
+  //   rows: [expandedCustomBox],
+  // } = await db.query(expandSql, [customBoxId]);
+  // return expandedCustomBox;
 };
 
 export const createAndGetNewBYOCustomBox = async (userId) => {

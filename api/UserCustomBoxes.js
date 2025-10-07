@@ -54,7 +54,6 @@ router
       const activeCustomBox = await getOrCreateActiveCustomBoxByUserId(
         req.user.id
       );
-      console.log(activeCustomBox);
       return res.status(200).send(activeCustomBox);
     } catch (error) {
       return next(error);
@@ -64,7 +63,6 @@ router
     const activeCustomBox = await getOrCreateActiveCustomBoxByUserId(
       req.user.id
     );
-    console.log(activeCustomBox);
 
     if (req.user.id !== activeCustomBox.user_id)
       return res.status(404).json({ message: "User's custom box not found" });
@@ -77,8 +75,11 @@ router
 
 router.route("/active/new").post(async (req, res, next) => {
   try {
-    const newCustomBox = await createAndGetNewBYOCustomBox(req.user.id);
-    res.status(201).send(newCustomBox);
+    await createAndGetNewBYOCustomBox(req.user.id);
+    const newActiveCustomBox = await getOrCreateActiveCustomBoxByUserId(
+      req.user.id
+    );
+    res.status(201).send(newActiveCustomBox);
   } catch (error) {
     return next(error);
   }
