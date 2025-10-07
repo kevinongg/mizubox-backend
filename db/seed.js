@@ -95,13 +95,23 @@ const seed = async () => {
     },
     {
       name: "Madai",
-      category: "shellfish",
-      description: "Sea scallop w/ lime zest & charcoal salt",
+      category: "fish",
+      description: "Red sea bream w/ yuzu pepper sauce",
       imageUrl:
         "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759762363/Madai_Japanese_Red_Sea_Bream_w_yuzu_pepper_sauce_agynxu.jpg",
       price: 7.0,
       available: true,
     },
+    {
+      name: "Hotate",
+      category: "shellfish",
+      description: "Sea scallop w/ lime zest & charcoal salt",
+      imageUrl:
+        "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759762365/Hotate_Sea_Scallops_w_lime_zest_lime_juice_grated_pink_Himalayan_sea_salt_n1fi00.jpg",
+      price: 7.0,
+      available: true,
+    },
+
     {
       name: "Botan Ebi",
       category: "shellfish",
@@ -399,7 +409,7 @@ const seed = async () => {
     {
       name: "Summer Box",
       description:
-        "14 pieces featuring Madagascar Tiger Prawn(×4), Santa Barbara Uni(×2), Chu-Toro(×2)",
+        "14 pieces featuring Madagascar Tiger Prawn (×4), Santa Barbara Uni (×2), Chu-Toro (×2)",
       imageUrl:
         "https://res.cloudinary.com/dj1m8yp37/image/upload/v1759766985/116589506_107946874261170_2996731863533264576_n_ddgpw8.jpg",
       price: 100.0,
